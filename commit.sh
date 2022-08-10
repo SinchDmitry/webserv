@@ -10,3 +10,4 @@ then
   git push
 else 
   git pull
+fi
