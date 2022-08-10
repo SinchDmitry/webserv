@@ -32,9 +32,9 @@ int main() {
         exit(END_ERROR);
     }
     result = bind(listning, addr->ai_addr, (int)addr->ai_addrlen); // привязка сокета IP-адресу
-    std::cout << result << std::endl;
     if (result == SOCKET_ERROR) {
         std::cout << "error3" << std::endl;
         exit(END_ERROR);
     }
+    
 }
