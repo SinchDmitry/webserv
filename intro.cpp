@@ -54,34 +54,36 @@ int main() {
         exit(END_ERROR);
     }
 
-    char buf[MAX_SHORT];
-    result = recv(clientSocket, buf, MAX_SHORT, 0);
+while (true) {
+        char buf[MAX_SHORT];
+        result = recv(clientSocket, buf, MAX_SHORT, 0);
 
-    std::cout << result << std::endl;
+        std::cout << result << std::endl;
 
-    std::stringstream response; // сюда будет записываться ответ клиенту
-    std::stringstream response_body;
+        std::stringstream response; // сюда будет записываться ответ клиенту
+        std::stringstream response_body;
 
-    buf[result] = '\0';
+        buf[result] = '\0';
 
-    /* тело ответа (HTML) */
-    response_body << "<title>Test C++ HTTP Server</title>\n"
-        << "<h1>Test page</h1>\n"
-        << "<p>This is body of the test page...</p>\n"
-        << "<h2>Request headers</h2>\n"
-        << "<pre>" << buf << "</pre>\n"
-        << "<em><small>Test C++ Http Server</small></em>\n";
+        /* тело ответа (HTML) */
+        response_body << "<title>Test C++ HTTP Server</title>\n"
+            << "<h1>Test page</h1>\n"
+            << "<p>This is body of the test page...</p>\n"
+            << "<h2>Request headers</h2>\n"
+            << "<pre>" << buf << "</pre>\n"
+            << "<em><small>Test C++ Http Server</small></em>\n";
 
-    /* весь ответ вместе с заголовками */
-    response << "HTTP/1.1 200 OK\r\n"
-        << "Version: HTTP/1.1\r\n"
-        << "Content-Type: text/html; charset=utf-8\r\n"
-        << "Content-Length: " << response_body.str().length()
-        << "\r\n\r\n"
-        << response_body.str();
+        /* весь ответ вместе с заголовками */
+        response << "HTTP/1.1 200 OK\r\n"
+            << "Version: HTTP/1.1\r\n"
+            << "Content-Type: text/html; charset=utf-8\r\n"
+            << "Content-Length: " << response_body.str().length()
+            << "\r\n\r\n"
+            << response_body.str();
 
-    result = send(clientSocket, response.str().c_str(),
-        response.str().length(), 0);
+        result = send(clientSocket, response.str().c_str(),
+            response.str().length(), 0);
 
-    std::cout << result << std::endl;
+        std::cout << result << std::endl;
+    }
 }
