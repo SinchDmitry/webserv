@@ -50,13 +50,13 @@ int main() {
         exit(END_ERROR);
     }
 
-    int clientSocket = accept(listning, NULL, NULL); // ожидает запрос на установку TCP-соединения от удаленного хоста.
-    if (clientSocket == SOCKET_ERROR) {
-        std::cout << "error5" << std::endl;
-        exit(END_ERROR);
-    }
-
 while (true) {
+
+        int clientSocket = accept(listning, NULL, NULL); // ожидает запрос на установку TCP-соединения от удаленного хоста.
+        if (clientSocket == SOCKET_ERROR) {
+            std::cout << "error5" << std::endl;
+            exit(END_ERROR);
+    }
         char buf[MAX_SHORT];
         result = recv(clientSocket, buf, MAX_SHORT, 0);
 
