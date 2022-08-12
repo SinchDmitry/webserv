@@ -20,9 +20,9 @@
 class Server
 {
     private:
-        int     _numOfListenSocket;
-        pollfd  _fds[200];
-        int     _port;
+        pollfd   _fds[200];
+        int      _port;
+        int      _numOfListenSocket;
     public:
         Server();
         ~Server();

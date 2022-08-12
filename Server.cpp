@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _numOfListenSocket(0), _port(12000) {}
+Server::Server() : _numOfListenSocket(5), _port(12000) {} // 5 - random value
 
 Server::~Server(){}
 
@@ -105,14 +105,18 @@ void Server::sendTestMessage(int clientSocket, std::string buf) {
 }
 
 void    Server::createTestListSockets() {
-    int tmpFd = initListningSocket();
-    if (tmpFd != SOCKET_ERROR) {
-        _fds[_numOfListenSocket].fd = tmpFd;
-        _fds[_numOfListenSocket].events = POLLIN;
-        run(tmpFd);
-        ++_numOfListenSocket;
-    } else {
-        exit(SOCKET_ERROR);
+    for (int i = 0; i < _numOfListenSocket; ++i) {
+        int tmpFd = initListningSocket();
+        if (tmpFd != SOCKET_ERROR) {
+            _fds[i].fd = tmpFd;
+            _fds[i].events = POLLIN;
+        } else {
+            exit(SOCKET_ERROR);
+        }
+    }
+    int nfds = 1;
+    while (true) {
+        // poll(_fds, nfds, 30000);
     }
 }
 
