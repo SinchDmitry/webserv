@@ -56,7 +56,7 @@ while (true) {
         if (clientSocket == SOCKET_ERROR) {
             std::cout << "error5" << std::endl;
             exit(END_ERROR);
-    }
+        }
         char buf[MAX_SHORT];
         result = recv(clientSocket, buf, MAX_SHORT, 0);
 
