@@ -2,8 +2,8 @@
 
 int main() {
     Server testServer;
-    int socketId = testServer.initListningSocket();
-    if (socketId != -1) {
-        testServer.run(socketId);
+    for (int i = 0; i < 5; ++i) {
+        testServer.createTestListSockets();
     }
+    
 }

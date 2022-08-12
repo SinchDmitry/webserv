@@ -1,28 +1,8 @@
 #include "Server.hpp"
 
-Server::Server(){}
+Server::Server() : _numOfListenSocket(0), _port(12000) {}
 
 Server::~Server(){}
-
-std::string Server::parseHTTPHead(int clientSocket) {
-     char sym;
-        std::string buffer = "";
-        while (true) {
-            int byteIn = recv(clientSocket, &sym, 1, 0);
-            if (byteIn > EMPTY_BUFFER) {
-                buffer += sym;
-                if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
-                    break;
-                }
-            } else if (byteIn == EMPTY_BUFFER) {
-                break;
-            } else if (byteIn == SOCKET_ERROR) {
-                std::cerr << "Error : failure reading from TCP" << std::endl;
-            } 
-        }
-        buffer[buffer.length()] = '\0';
-        return buffer;
-}
 
 int Server::initListningSocket() {
     struct sockaddr_in addr;    // информация об IP адресе
@@ -31,9 +11,8 @@ int Server::initListningSocket() {
     addr.sin_family = AF_INET;                          // IPv4 протоколы Интернет
     // addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);    
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(PORT);          
+    addr.sin_port = htons(_port);          
   
-
     /* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */
     int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
     if (listningSocket == SOCKET_ERROR) {
@@ -59,7 +38,7 @@ int Server::initPoll(int listningSocket) {
     /* https://www.opennet.ru/man.shtml?topic=poll&category=2&russian=0 */
     pollfd fds[80];
     fds[0].fd = listningSocket;
-    fds[0].events = POLL_IN;
+    fds[0].events = POLLIN;
     return 0;
 }
 
@@ -76,6 +55,26 @@ void Server::run(int listningSocket) {
         close(clientSocket);
     }
     close(listningSocket);
+}
+
+std::string Server::parseHTTPHead(int clientSocket) {
+     char sym;
+        std::string buffer = "";
+        while (true) {
+            int byteIn = recv(clientSocket, &sym, 1, 0);
+            if (byteIn > EMPTY_BUFFER) {
+                buffer += sym;
+                if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
+                    break;
+                }
+            } else if (byteIn == EMPTY_BUFFER) {
+                break;
+            } else if (byteIn == SOCKET_ERROR) {
+                std::cerr << "Error : failure reading from TCP" << std::endl;
+            } 
+        }
+        buffer[buffer.length()] = '\0';
+        return buffer;
 }
 
 void Server::sendTestMessage(int clientSocket, std::string buf) {
@@ -104,3 +103,17 @@ void Server::sendTestMessage(int clientSocket, std::string buf) {
             std::cerr << "Error : send message failure" << std::endl;
         }
 }
+
+void    Server::createTestListSockets() {
+    int tmpFd = initListningSocket();
+    if (tmpFd != SOCKET_ERROR) {
+        _fds[_numOfListenSocket].fd = tmpFd;
+        _fds[_numOfListenSocket].events = POLLIN;
+        run(tmpFd);
+        ++_numOfListenSocket;
+    } else {
+        exit(SOCKET_ERROR);
+    }
+}
+
+    // std::cout << listningSocket << std::endl;
