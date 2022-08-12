@@ -4,6 +4,26 @@ Server::Server(){}
 
 Server::~Server(){}
 
+std::string Server::parseHTTPHead(int clientSocket) {
+     char sym;
+        std::string buffer = "";
+        while (true) {
+            int byteIn = recv(clientSocket, &sym, 1, 0);
+            if (byteIn > EMPTY_BUFFER) {
+                buffer += sym;
+                if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
+                    break;
+                }
+            } else if (byteIn == EMPTY_BUFFER) {
+                break;
+            } else if (byteIn == SOCKET_ERROR) {
+                std::cerr << "Error : failure reading from TCP" << std::endl;
+            } 
+        }
+        buffer[buffer.length()] = '\0';
+        return buffer;
+}
+
 int Server::initListningSocket() {
     struct sockaddr_in addr;    // информация об IP адресе
 
@@ -17,22 +37,30 @@ int Server::initListningSocket() {
     /* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */
     int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
     if (listningSocket == SOCKET_ERROR) {
-        std::cout << "Error : cannot create a socket" << std::endl;
+        std::cerr << "Error : cannot create a socket" << std::endl;
         return -1;
     }
     /* привязка сокета IP-адресу */
     if (bind(listningSocket, (const sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR) {
-        std::cout << "Error : cannot bind a socket" << std::endl;
+        std::cerr << "Error : cannot bind a socket" << std::endl;
         close(listningSocket);
         return -1;
     }
     /* Подготовим сокета к принятию входящих соединений от клиентов. */
     if (listen(listningSocket, SOMAXCONN) == SOCKET_ERROR) {  
-        std::cout << "Error : listen failure" << std::endl;
+        std::cerr << "Error : listen failure" << std::endl;
         close(listningSocket);
         return -1;
     }
     return listningSocket;
+}
+
+int Server::initPoll(int listningSocket) {
+    /* https://www.opennet.ru/man.shtml?topic=poll&category=2&russian=0 */
+    pollfd fds[80];
+    fds[0].fd = listningSocket;
+    fds[0].events = POLL_IN;
+    return 0;
 }
 
 void Server::run(int listningSocket) {
@@ -40,44 +68,39 @@ void Server::run(int listningSocket) {
         /* ожидает запрос на установку TCP-соединения от удаленного хоста. */
         int clientSocket = accept(listningSocket, NULL, NULL);
         if (clientSocket == SOCKET_ERROR) {
-            std::cout << "error5" << std::endl;
+            std::cerr << "Error : TCP connection failure" << std::endl;
             exit(END_ERROR);
         }
-        char buf[MAX_SHORT];
-        int byteIn = recv(clientSocket, buf, MAX_SHORT, 0);
-
-        if (byteIn > EMPTY_BUFFER) {
-            std::stringstream response; // сюда будет записываться ответ клиенту
-            std::stringstream response_body;
-
-            buf[byteIn] = '\0';
-
-            /* тело ответа (HTML) */
-            response_body << "<title>Test C++ HTTP Server</title>\n"
-                << "<h1>Test page</h1>\n"
-                << "<p>This is body of the test page...</p>\n"
-                << "<h2>Request headers</h2>\n"
-                << "<pre>" << buf << "</pre>\n" 
-                << "<em><small>Test C++ Http Server</small></em>\n";
-
-            /* весь ответ вместе с заголовками */
-            response << "HTTP/1.1 200 OK\r\n"
-                << "Version: HTTP/1.1\r\n"
-                << "Content-Type: text/html; charset=utf-8\r\n"
-                << "Content-Length: " << response_body.str().length()
-                << "\r\n\r\n"
-                << response_body.str();
-
-            int byteOut = send(clientSocket, response.str().c_str(),
-                response.str().length(), 0);
-
-            std::cout << byteOut << std::endl;
-        } else if (byteIn == EMPTY_BUFFER) {
-            break;
-        } else if (byteIn == SOCKET_ERROR) {
-            std::cout << "Error : TCP connection failure" << std::endl;
-        } 
+        std::string buffer = parseHTTPHead(clientSocket);
+        sendTestMessage(clientSocket, buffer);
         close(clientSocket);
     }
     close(listningSocket);
+}
+
+void Server::sendTestMessage(int clientSocket, std::string buf) {
+    std::stringstream response; // сюда будет записываться ответ клиенту
+    std::stringstream response_body;
+
+    /* тело ответа (HTML) */
+    response_body << "<title>Test C++ HTTP Server</title>\n"
+        << "<h1>Test page</h1>\n"
+        << "<p>This is body of the test page...</p>\n"
+        << "<h2>Request headers</h2>\n"
+        << "<pre>" << buf << "</pre>\n" 
+        << "<em><small>Test C++ Http Server</small></em>\n";
+
+    /* весь ответ вместе с заголовками */
+    response << "HTTP/1.1 200 OK\r\n"
+        << "Version: HTTP/1.1\r\n"
+        << "Content-Type: text/html; charset=utf-8\r\n"
+        << "Content-Length: " << response_body.str().length()
+        << "\r\n\r\n" 
+        << response_body.str();
+
+    int byteOut = send(clientSocket, response.str().c_str(),
+        response.str().length(), 0);
+        if (byteOut == SOCKET_ERROR) {
+            std::cerr << "Error : send message failure" << std::endl;
+        }
 }

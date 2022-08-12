@@ -5,6 +5,7 @@
 # include <sstream>
 # include <unistd.h>
 # include <string>
+# include <sys/poll.h>
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <arpa/inet.h>
@@ -25,8 +26,11 @@ class Server
         Server();
         ~Server();
 
-        int     initListningSocket();
-        void    run(int listningSocket);
+        int         initListningSocket();
+        int         initPoll(int listningSocket);
+        void        run(int listningSocket);
+        void        sendTestMessage(int clientSocket, std::string buf);
+        std::string parseHTTPHead(int clientSocket);
 };
 
 #endif
