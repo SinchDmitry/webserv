@@ -20,9 +20,11 @@
 class Server
 {
     private:
-        pollfd   _fds[200];
-        int      _port;
-        int      _numOfListenSocket;
+        pollfd      _fds[200];
+        int         _port;
+        int         _numOfListenSocket;
+        bool        findInListenSockets(int fd);
+
     public:
         Server();
         ~Server();
@@ -33,7 +35,7 @@ class Server
         std::string parseHTTPHead(int clientSocket);
 
         void        sendTestMessage(int clientSocket, std::string buf);
-        void        createTestListSockets();
+        void        createListSockets();
 };
 
 #endif
