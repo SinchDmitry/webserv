@@ -10,12 +10,14 @@
 # include <sys/socket.h>
 # include <arpa/inet.h>
 # include <netdb.h>
+# include <fcntl.h>
 
-# define END_ERROR       1
-# define SOCKET_ERROR    -1
-# define MAX_SHORT       32767
-# define EMPTY_BUFFER    0
-# define IP_ADDRESS      "127.0.0.1"
+# define END_ERROR          1
+# define SOCKET_ERROR       -1
+# define MAX_SHORT          32767
+# define EMPTY_BUFFER       0
+# define IP_ADDRESS         "127.0.0.1"
+# define READ_BUFFER_SIZE   125000
 
 class Server
 {
@@ -23,6 +25,7 @@ class Server
         pollfd      _fds[200];
         int         _port;
         int         _numOfListenSocket;
+        int         _debagCounter;
         bool        findInListenSockets(int fd);
 
     public:
@@ -31,11 +34,12 @@ class Server
 
         int         initListningSocket();
         int         initPoll(int listningSocket);
-        void        run(int listningSocket);
-        std::string parseHTTPHead(int clientSocket);
+        void        run();
+        std::string readHTTPHead(int clientSocket);
 
-        void        sendTestMessage(int clientSocket, std::string buf);
+        bool        sendTestMessage(int clientSocket, std::string buf, int readCounter);
         void        createListSockets();
+        void        closeListSockets();
 };
 
 #endif

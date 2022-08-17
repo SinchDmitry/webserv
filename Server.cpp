@@ -1,6 +1,18 @@
 #include "Server.hpp"
+#include <fstream>
 
-Server::Server() : _port(12000), _numOfListenSocket(5) {} // 5 - random value
+/* debag funtions */
+void    printFdsArray(pollfd *fds, int nfds) {
+    std::cout << std::endl << "=========== open client sockets ===========" << std::endl;
+    for (int i = 0; i < nfds; i++) {
+        std::cout << i << " | fd : " << fds[i].fd << " | event : " 
+            << fds[i].events << " | revent : " << fds[i].revents << std::endl;   
+    }
+    std::cout << "=================== end ===================" << std::endl << std::endl;
+}
+
+/* class */
+Server::Server() : _port(11000), _numOfListenSocket(5), _debagCounter(0) {} // 5 - random value
 
 Server::~Server(){}
 
@@ -11,7 +23,7 @@ int Server::initListningSocket() {
     addr.sin_family = AF_INET;                          // IPv4 протоколы Интернет
     // addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);    
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(_port);          
+    addr.sin_port = htons(_port++);          
   
     /* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */
     int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
@@ -19,6 +31,13 @@ int Server::initListningSocket() {
         perror("Error : cannot create a socket");
         return -1;
     }
+
+    /* фикс проблемы с "повисшим" bind */
+    int enable = 1;
+    if (setsockopt(listningSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
+        return SOCKET_ERROR;
+    }
+
     /* привязка сокета IP-адресу */
     if (bind(listningSocket, (const sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR) {
         perror("Error : cannot bind a socket");
@@ -36,21 +55,20 @@ int Server::initListningSocket() {
 
 bool Server::findInListenSockets(int fd) {
     for (int i = 0; i < _numOfListenSocket; ++i) {
-        if (_fds[i].fd = fd) {
+        if (_fds[i].fd == fd) {
             return true;
         }
     }
     return false;
 }
 
-void Server::run(int listningSocket) {
+void Server::run() {
     /* заполняем струтуру в которой будем хранить информацию о состоянии установленных соединений */
     createListSockets();
     int nfds = _numOfListenSocket;
-
     while (true) {
         /* ожидаем изменения состояния открытого сокета */
-        int pollStatus = poll(_fds, nfds, 30000);
+        int pollStatus = poll(_fds, nfds, -1);
         if (pollStatus == -1) {
             perror("Error : poll failure");
             break;
@@ -59,8 +77,10 @@ void Server::run(int listningSocket) {
             break;
         }
         /* ожидает запрос на установку TCP-соединения от удаленного хоста. */
+        static int readCounter;
         for (int i = 0; i < nfds; ++i) {
-            if (_fds[i].revents == NULL) {
+            std::string buffer;
+            if (_fds[i].revents == 0) {
                 continue;
             } else if (findInListenSockets(_fds[i].fd)) {
                 int clientSocket = accept(_fds[i].fd, NULL, NULL);
@@ -68,43 +88,63 @@ void Server::run(int listningSocket) {
                     perror("Error : TCP connection failure");
                     exit(END_ERROR);
                 }
-                std::cout << "Succsessful connection" << std::endl;
+                std::cout << "Succsessful connection : " << _fds[i].fd << std::endl;
                 _fds[nfds].fd = clientSocket;
                 _fds[nfds].events = POLLIN;
+                _fds[nfds].revents = 0;
                 nfds++;
-                std::string buffer = parseHTTPHead(clientSocket);
-                sendTestMessage(clientSocket, buffer);
-                close(clientSocket);
+            } else if (_fds[i].revents == POLLIN) {
+                buffer = readHTTPHead(_fds[i].fd);
+                _fds[i].events = POLLOUT;
+                _fds[i].revents = 0;
+            } else if (_fds[i].revents == POLLOUT) {
+                if (sendTestMessage(_fds[i].fd, buffer, readCounter)) {
+                    _fds[i].events = POLLIN;
+                }
+                _fds[i].revents = 0;
+            } else if (_fds[i].revents != POLLOUT && _fds[i].revents != POLLIN) {
+                std::cout << "Connection closed" << std::endl;
+                close(_fds[i].fd);
+                for (int j = i; j < nfds - 1; j++) {
+                    _fds[j] = _fds[j + 1];
+                }
+                --nfds;
+                --i;
+            } else {
+                perror("Error : wrong revent");
+                break;
             }
         }
     }
-    close(listningSocket);
+    closeListSockets();
 }
 
-std::string Server::parseHTTPHead(int clientSocket) {
-     char sym;
-        std::string buffer = "";
-        while (true) {
-            int byteIn = recv(clientSocket, &sym, 1, 0);
-            if (byteIn > EMPTY_BUFFER) {
-                buffer += sym;
-                if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
-                    break;
-                }
-            } else if (byteIn == EMPTY_BUFFER) {
+std::string Server::readHTTPHead(int clientSocket) {
+    /* parsing head of HTTP request using one char buffer */
+    char sym;
+    std::string buffer = "";
+    while (true) {
+        int byteIn = recv(clientSocket, &sym, 1, 0);
+        if (byteIn > EMPTY_BUFFER) {
+            buffer += sym;
+            if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
                 break;
-            } else if (byteIn == SOCKET_ERROR) {
-                perror("Error : failure reading from TCP");
-            } 
-        }
-        buffer[buffer.length()] = '\0';
-        return buffer;
+            }
+        } else if (byteIn == EMPTY_BUFFER) {
+            break;
+        } else if (byteIn == SOCKET_ERROR) {
+            perror("Error : failure reading from TCP");
+        } 
+    }
+    buffer[buffer.length()] = '\0';
+    return buffer;
 }
 
-void Server::sendTestMessage(int clientSocket, std::string buf) {
-    std::stringstream response; // сюда будет записываться ответ клиенту
-    std::stringstream response_body;
-
+bool Server::sendTestMessage(int clientSocket, std::string buf, int readCounter) {
+    std::stringstream   response; // сюда будет записываться ответ клиенту
+    std::stringstream   response_body;
+    std::ifstream       file;
+    static bool headerFlag;
     /* тело ответа (HTML) */
     response_body << "<title>Test C++ HTTP Server</title>\n"
         << "<h1>Test page</h1>\n"
@@ -112,25 +152,52 @@ void Server::sendTestMessage(int clientSocket, std::string buf) {
         << "<h2>Request headers</h2>\n"
         << "<pre>" << buf << "</pre>\n" 
         << "<em><small>Test C++ Http Server</small></em>\n";
+    // file.open("/Users/aarchiba/Desktop/webserv/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
+    file.open("/Users/aarchiba/Desktop/webserv/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
+    if (file.fail()) {
+        perror("Error : can't open input file");
+        exit(1);
+    }
+    int size = file.tellg();
+    // std::cout << size << std::endl;
+    file.seekg(readCounter);
 
-    /* весь ответ вместе с заголовками */
-    response << "HTTP/1.1 200 OK\r\n"
-        << "Version: HTTP/1.1\r\n"
-        << "Content-Type: text/html; charset=utf-8\r\n"
-        << "Content-Length: " << response_body.str().length()
-        << "\r\n\r\n" 
-        << response_body.str();
-
-    int byteOut = send(clientSocket, response.str().c_str(),
-        response.str().length(), 0);
-        if (byteOut == SOCKET_ERROR) {
+    if (!headerFlag) {
+        /* заголовок */
+        response << "HTTP/1.1 200 OK\r\n"
+            << "Version: HTTP/1.1\r\n"
+            // << "Content-Type: video/mp4; charset=utf-8\r\n"
+            << "Content-Type: image/png; charset=utf-8\r\n"
+            << "Content-Length: " << size << "\r\n\r\n";
+        if (send(clientSocket, response.str().c_str(), response.str().length(), 0) == SOCKET_ERROR) {
             perror("Error : send message failure");
+            exit(SOCKET_ERROR); // correct it
         }
+        headerFlag = true;
+    }
+    /* порционная отправка ответа */
+    int counter = READ_BUFFER_SIZE;
+    char buffer[counter];
+    file.read(buffer, READ_BUFFER_SIZE);
+    if (send(clientSocket, buffer, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
+        perror("Error : send message failure");
+        exit(SOCKET_ERROR); // correct it
+    }
+    readCounter += READ_BUFFER_SIZE;
+    if (file.eof()) {
+        headerFlag = false;
+        file.close();
+        file.clear();
+        _debagCounter = 0;
+        return true;
+    }
+    return false;
 }
 
 void    Server::createListSockets() {
     for (int i = 0; i < _numOfListenSocket; ++i) {
         int tmpFd = initListningSocket();
+        std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;
         if (tmpFd != SOCKET_ERROR) {
             _fds[i].fd = tmpFd;
             _fds[i].events = POLLIN;
@@ -140,4 +207,8 @@ void    Server::createListSockets() {
     }
 }
 
-    // std::cout << listningSocket << std::endl;
+void    Server::closeListSockets() {
+    for (int i = 0; i < _numOfListenSocket; ++i) {
+        close (_fds[i].fd);
+    }
+}
