@@ -1,4 +1,5 @@
 NAME			= 	webserv
+VPATH			=	src/
 SRCS			=	main.cpp \
 					Server.cpp
 
