@@ -173,11 +173,10 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
     //     << "<pre>" << buf << "</pre>\n" 
     //     << "<em><small>Test C++ Http Server</small></em>\n";
 
-    
+    file.open("resources/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
 	int size;
     if (!headerFlag) {
         /* заголовок */
-		file.open("/Users/aarchiba/Desktop/webserv/resources/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
 		// file.open("/Users/aarchiba/Desktop/webserv/resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
 		// file.open("/Users/aarchiba/Desktop/webserv/page.html", std::ios::in | std::ios::binary | std::ios::ate);
 		// file.open("/Users/aarchiba/Desktop/webserv/resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
@@ -198,15 +197,16 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
             perror("Error : send message failure");
             exit(SOCKET_ERROR); // correct it
         }
-		file.seekg(0);
         headerFlag = true;
     }
 
+	file.seekg(readCounter);
     /* порционная отправка ответа */
     char buff[READ_BUFFER_SIZE];
-    std::cout << file.read(buff, READ_BUFFER_SIZE) << std::endl;
+    file.read(buff, READ_BUFFER_SIZE);
 	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
-    // if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
+    readCounter += READ_BUFFER_SIZE;
+	// if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
     //     perror("Error : send message failure");
     //     exit(SOCKET_ERROR); // correct it
     // }

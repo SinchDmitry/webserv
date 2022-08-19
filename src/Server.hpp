@@ -17,7 +17,7 @@
 # define MAX_SHORT          32767
 # define EMPTY_BUFFER       0
 # define IP_ADDRESS         "127.0.0.1"
-# define READ_BUFFER_SIZE   100000
+# define READ_BUFFER_SIZE   10000
 
 class Server
 {
