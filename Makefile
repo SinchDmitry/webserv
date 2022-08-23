@@ -1,7 +1,10 @@
 NAME			= 	webserv
 VPATH			=	src/
 SRCS			=	main.cpp \
-					Server.cpp
+					Server.cpp \
+					ConfigurationSingleton.cpp \
+					LocationInfo.cpp
+
 
 OBJS			= $(SRCS:.cpp=.o)
 DEP				= $(SRCS:.cpp=.d)

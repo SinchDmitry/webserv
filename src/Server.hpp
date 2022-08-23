@@ -11,6 +11,7 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <fcntl.h>
+# include "ConfigurationSingleton.hpp"
 
 # define END_ERROR          1
 # define SOCKET_ERROR       -1
