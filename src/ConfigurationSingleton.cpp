@@ -27,17 +27,17 @@ ConfigurationSingleton*	ConfigurationSingleton::getInstance(void) {
 	return _instance;
 }
 
-std::vector<std::string> ConfigurationSingleton::split(const std::string &s, char delim) {
+std::list<std::string> ConfigurationSingleton::split(const std::string &s, char delim) {
     std::stringstream ss(s);
     std::string item;
-	std::vector<std::string> elems;
+	std::list<std::string> elems;
     while(std::getline(ss, item, delim)) {
         elems.push_back(item);
     }
     return elems;
 }
 
-void	ConfigurationSingleton::fileInit() {
+std::list<std::string>	ConfigurationSingleton::fileInit() {
 	std::ifstream file;
 	file.open("configuration.conf", std::ios::in | std::ios::ate);
 	if (file.fail()) {
@@ -49,8 +49,20 @@ void	ConfigurationSingleton::fileInit() {
 	file.seekg(0);
 	file.read(buffer, size);
 
-	std::vector<std::string> configInfo = split(buffer, '\n');
-	for (int i = 0; i < configInfo.size(); ++i) {
-		std::cout << configInfo[i] << std::endl;
+	std::list<std::string> configInfo = split(buffer, '\n');
+	for (std::list<std::string>::iterator a = configInfo.begin(); a != configInfo.end(); ++a) {
+		std::cout << *a << std::endl;
 	}
+	return configInfo;
+}
+
+void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
+	enum generalArguments {
+		listen, server_name, location, index, root, allow_method, auroindex,redirect
+	} ;
+	std::list<std::string>::iterator a = inputFile.begin();
+	int scopeOpen = 0;
+	int scopeClose = 0;
+	
+	
 }

@@ -47,6 +47,6 @@ const std::string&	LocationInfo::getAutoindexStatus(void) const {
 	return _autoindexStatus;
 }
 
-const std::vector<std::string>&	LocationInfo::getMetohods(void) const {
+const std::list<std::string>&	LocationInfo::getMetohods(void) const {
 	return _metods;
 }
