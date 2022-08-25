@@ -10,10 +10,8 @@ ConfigurationSingleton::ConfigurationSingleton(const ConfigurationSingleton& cop
 
 ConfigurationSingleton& ConfigurationSingleton::operator = (const ConfigurationSingleton& op) {
 	if (this != &op) {
-		_port = op._port;
-		_ipAddress = op._ipAddress;
+		_tree = op._tree;
 		_instance = op._instance;
-		_locationData = op._locationData;
 	}
 	return *this;
 }
@@ -56,13 +54,24 @@ std::list<std::string>	ConfigurationSingleton::fileInit() {
 	return configInfo;
 }
 
+LocationInfo ConfigurationSingleton::newConfigList(std::list<std::string>::iterator a) {
+	LocationInfo config;
+	std::list<std::string> tmpString = split(*a, ' ');
+	if (tmpString.size() == 2) {
+		config.configPushBack();
+	} else if (tmpString.size() == 3) {
+
+	}
+	while (*tmpString.end() != "}") {
+
+		std::list<std::string> tmpString = split(*a, ' ');
+			
+	}
+}
+
 void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
-	enum generalArguments {
-		listen, server_name, location, index, root, allow_method, auroindex,redirect
-	} ;
+	ConfigurationSingleton* config = config->getInstance();
 	std::list<std::string>::iterator a = inputFile.begin();
-	int scopeOpen = 0;
-	int scopeClose = 0;
-	
+	newConfigList(a);
 	
 }
