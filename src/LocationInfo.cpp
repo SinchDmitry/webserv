@@ -1,6 +1,9 @@
 #include "LocationInfo.hpp"
 
-LocationInfo::LocationInfo() : _type("") {}
+LocationInfo::LocationInfo() : _type(""), _location("") {}
+
+LocationInfo::LocationInfo(std::string name, std::string location) 
+	: _type(name), _location(location) {}
 
 LocationInfo::LocationInfo(const LocationInfo& copy) { *this = copy; }
 
@@ -12,6 +15,10 @@ LocationInfo&	LocationInfo::operator = (const LocationInfo& op) {
 	return *this;
 }
 
-void	LocationInfo::configPushBack(std::string key, std::string value) {
+void	LocationInfo::configMapPushBack(std::string key, std::string value) {
 	_config.insert(key, value);
+}
+
+void	LocationInfo::configListPushBack(LocationInfo config) {
+	_downGrade.push_back(config);
 }

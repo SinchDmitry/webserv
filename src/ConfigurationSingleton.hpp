@@ -7,7 +7,7 @@
 class ConfigurationSingleton {
 	private :
 		static ConfigurationSingleton* 	_instance;
-		std::list<LocationInfo>			_tree;
+		LocationInfo*					_tree;
 
 		ConfigurationSingleton(void);
 		ConfigurationSingleton(const ConfigurationSingleton& copy);
@@ -16,7 +16,7 @@ class ConfigurationSingleton {
 		std::list<std::string> 	split(const std::string &s, char delim);
 		std::list<std::string>	fileInit();
 		void					fileParse(std::list<std::string> inputFile);
-		LocationInfo 			ConfigurationSingleton::newConfigList(std::list<std::string>::iterator a);
+		LocationInfo 			downgradeConfigList(std::list<std::string>::iterator a);
 
 	public :
 		static ConfigurationSingleton* getInstance(void);

@@ -1,7 +1,7 @@
 #include "ConfigurationSingleton.hpp"
 
-ConfigurationSingleton::ConfigurationSingleton() {
-	fileInit();
+ConfigurationSingleton::ConfigurationSingleton() : _tree(NULL) {
+	fileParse(fileInit());
 }
 
 ConfigurationSingleton::ConfigurationSingleton(const ConfigurationSingleton& copy) {
@@ -54,24 +54,38 @@ std::list<std::string>	ConfigurationSingleton::fileInit() {
 	return configInfo;
 }
 
-LocationInfo ConfigurationSingleton::newConfigList(std::list<std::string>::iterator a) {
-	LocationInfo config;
-	std::list<std::string> tmpString = split(*a, ' ');
-	if (tmpString.size() == 2) {
-		config.configPushBack();
-	} else if (tmpString.size() == 3) {
-
+LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>::iterator a) {
+	LocationInfo downGrade;
+	std::list<std::string> infoString = split(*a, ' ');
+	if (infoString.size() == 2) {
+		downGrade.setType(*infoString.begin());
+	} else if (infoString.size() == 3) {
+		std::list<std::string>::iterator tmpIter = infoString.begin()++;
+		downGrade.setType(*infoString.begin());
+		downGrade.setLocation(*tmpIter);
+	} else {
+		exit(1);
 	}
-	while (*tmpString.end() != "}") {
-
-		std::list<std::string> tmpString = split(*a, ' ');
-			
+	while (true) {
+		++a;
+		infoString = split(*a, ' ');
+		if (*infoString.end() == "}") {
+			break ;
+		} else if (*infoString.end() == "{") {
+			downGrade.configListPushBack(downgradeConfigList(a));
+		} else if (infoString.size() == 2) {
+			std::list<std::string>::iterator tmpIter = infoString.begin()++;
+			downGrade.configMapPushBack(*infoString.begin(), *tmpIter);
+		}
 	}
+	return downGrade;
 }
 
 void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
-	ConfigurationSingleton* config = config->getInstance();
-	std::list<std::string>::iterator a = inputFile.begin();
-	newConfigList(a);
-	
+	std::list<std::string>::iterator a = inputFile.begin(); // создал итератор на начало
+	LocationInfo treeHead("root", "base"); // создал объект в котором будет храниться голова дерева
+	while (a != inputFile.end()) { // парсинг файла до последней строчки
+		treeHead.configListPushBack(downgradeConfigList(a)); // рекурсивная функция
+	}
+	_tree = &treeHead; // голову списка сохраняем, как голову дерева
 }
