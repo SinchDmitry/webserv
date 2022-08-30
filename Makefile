@@ -12,9 +12,8 @@ DEP				= $(SRCS:.cpp=.d)
 CXX				= c++
 
 RM				= rm -f
-CXXFLAGS		= 
-# -Wall -Wextra -Werror -I. 
--MD -std=c++98
+CXXFLAGS		= -MD -std=c++98 -I.
+# -Wall -Wextra -Werror  
 
 
 all:			$(NAME)
