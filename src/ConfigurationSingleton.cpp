@@ -65,17 +65,17 @@ LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>:
 			continue;
 		}
 		// std::cout << "here : "<< **a << " size : " << infoString.size() << std::endl;
-		if {}
-		if (*(--infoString.end()) == "{") {
-			std::cout << "here open : "<< **a << " size : " << infoString.size() << std::endl;
-			downGrade.configListPushBack(downgradeConfigList(a));
-			std::cout << "here close : "<< **a << " size : " << infoString.size() << std::endl;
-		} 
-		if (*(--infoString.end()) == "}") {
-			// std::cout << "here close : "<< **a << " size : " << infoString.size() << std::endl;
-			break;
-		} 
-		if (infoString.size() == 2) {
+		if (*(--infoString.end()) == "{" || *(--infoString.end()) == "}") {
+			if (*(--infoString.end()) == "{") {
+				std::cout << "here open : "<< **a << " size : " << infoString.size() << std::endl;
+				downGrade.configListPushBack(downgradeConfigList(a));
+				std::cout << "here close : "<< **a << " size : " << infoString.size() << std::endl;
+			} 
+			if (*(--infoString.end()) == "}") {
+				// std::cout << "here close : "<< **a << " size : " << infoString.size() << std::endl;
+				break;
+			} 
+		} else if (infoString.size() == 2) {
 			std::list<std::string>::iterator tmpIter = infoString.begin()++;
 			downGrade.configMapPushBack(*infoString.begin(), *tmpIter);
 		}
