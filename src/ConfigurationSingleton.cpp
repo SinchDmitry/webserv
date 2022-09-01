@@ -106,7 +106,7 @@ void recoursePrinter(LocationInfo* locationInf) {
 		}
 	}
 	std::list<LocationInfo> location = locationInf->getDownGradeList();
-	std::cout << "size : " << locationInf->getType() << std::endl;
+	// std::cout << "size : " << locationInf->getType() << std::endl;
 	if (!location.empty()) {
 		for (std::list<LocationInfo>::iterator locationIter = location.begin(); 
 			locationIter != location.end(); ++locationIter) {

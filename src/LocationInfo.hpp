@@ -22,8 +22,8 @@ class LocationInfo {
 		void	configMapPushBack(std::string key, std::string value);
 		void	configListPushBack(LocationInfo config);
 
-		void	setType(std::string type) { _type = type; }
-		void	setLocation(std::string location) { _location = location; }
+		void	setType(std::string type) 			{ _type = type; }
+		void	setLocation(std::string location) 	{ _location = location; }
 
 		const std::string& getType() const { return _type; };
 		const std::string& getLocation() const { return _location; };
