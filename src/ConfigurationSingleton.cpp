@@ -35,15 +35,23 @@ std::list<std::string>	ConfigurationSingleton::fileInit() {
 	char buffer[size];
 	file.seekg(0);
 	file.read(buffer, size);
+	buffer[size] = '\0';
 
 	std::list<std::string> configInfo = split(buffer, '\n');
+
+	/* print file */
+	/*
+		for (std::list<std::string>::iterator a = configInfo.begin(); a != configInfo.end(); a++) {
+			std::cout << *a << std::endl;
+		}
+		std::cout << std::endl;
+	*/
 	return configInfo;
 }
 
-LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>::iterator* a) {
+LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>::iterator* stringParserIterator) {
 	LocationInfo downGrade;
-	std::list<std::string> infoString = split(**a, ' ');
-	// std::cout << "here : "<< **a << " size : " << infoString.size() << std::endl;
+	std::list<std::string> infoString = split(**stringParserIterator, ' ');
 	if (infoString.size() == 2) {
 		downGrade.setType(*infoString.begin());
 	} else if (infoString.size() == 3) {
@@ -53,26 +61,23 @@ LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>:
 	} else {
 		exit(1);
 	}
-	// std::cout << "!!! scope info " << *infoString.begin() << std::endl;
 	while (true) {
-		++(*a);
-		
-		infoString = split(**a, ' ');
-		// std::cout << "!!! string info : " << **a << " length : " << infoString.size() << std::endl;
-		// std::cout << "	!!! end string info : " << *(--infoString.end()) << std::endl;
-		// std::cout << "	!!! begin string info : " << *infoString.begin() << std::endl;
+		++(*stringParserIterator);
+		infoString = split(**stringParserIterator, ' ');
 		if (*infoString.begin() == "#") {
 			continue;
 		}
-		// std::cout << "here : "<< **a << " size : " << infoString.size() << std::endl;
-		if (*(--infoString.end()) == "{" || *(--infoString.end()) == "}") {
-			if (*(--infoString.end()) == "{") {
-				std::cout << "here open : "<< **a << " size : " << infoString.size() << std::endl;
-				downGrade.configListPushBack(downgradeConfigList(a));
-				std::cout << "here close : "<< **a << " size : " << infoString.size() << std::endl;
+		std::list<std::string>::iterator tmpIter = --infoString.end();
+		if (*tmpIter == "{" || *tmpIter == "}") {
+			if (*tmpIter == "{") {
+				// std::cout << "here open : "<< **stringParserIterator << 
+					// " size : " << infoString.size() << std::endl;
+				downGrade.configListPushBack(downgradeConfigList(stringParserIterator));
+				continue;
 			} 
-			if (*(--infoString.end()) == "}") {
-				// std::cout << "here close : "<< **a << " size : " << infoString.size() << std::endl;
+			if (*tmpIter == "}") {
+				// std::cout << "here close : "<< **stringParserIterator << 
+					// " size : " << infoString.size() << std::endl;
 				break;
 			} 
 		} else if (infoString.size() == 2) {
@@ -84,16 +89,30 @@ LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>:
 }
 
 void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
-	std::list<std::string>::iterator a = inputFile.begin(); // создал итератор на начало
+	std::list<std::string>::iterator stringParserIterator = inputFile.begin(); // создал итератор на начало
 	LocationInfo* treeHead = new LocationInfo("root", "base"); // создал объект в котором будет храниться голова дерева
-	while (a != inputFile.end()) { // парсинг файла до последней строчки
-		std::cout << "on start : " << *a << std::endl;
-		std::list<std::string> infoString = split(*a, ' ');
-		if (*a != "" && *(--infoString.end()) == "{") {
-			treeHead->configListPushBack(downgradeConfigList(&a)); // рекурсивная функция
+	while (stringParserIterator != inputFile.end()) { // парсинг файла до последней строчки
+		std::list<std::string> infoString = split(*stringParserIterator, ' ');
+		if (*stringParserIterator != "" && *(--infoString.end()) == "{") {
+			std::cout << "init open : "<< *stringParserIterator << 
+				" size : " << infoString.size() << std::endl;
+			treeHead->configListPushBack(downgradeConfigList(&stringParserIterator)); // рекурсивная функция
 		}
-		std::cout << "at end : " << *a << std::endl;
-		++a;
+		++stringParserIterator;
 	}
 	_tree = treeHead; // голову списка сохраняем, как голову дерева
+
+	/* print file */
+	while (true) {
+		std::cout << "name : " << locationInf.getType();
+		for (std::list<std::string>::iterator a = ; a != ; a++) {
+			std::cout << *a << std::endl;
+		}
+		std::cout << std::endl;
+		return configInfo;
+	}
+}
+
+void recoursePrinter(LocationInfo locationInf) {
+	
 }

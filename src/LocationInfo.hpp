@@ -24,6 +24,11 @@ class LocationInfo {
 
 		void	setType(std::string type) { _type = type; }
 		void	setLocation(std::string location) { _location = location; }
+
+		const std::string& geType() const { return _type; };
+		const std::string& getLocation() const {return _location; };
+		const std::list<LocationInfo>& getDownGradeList() const { return _downGrade; };
+		const std::map<std::string, std::string>& getConfigList() const {return _config; };
 };
 
 #endif
