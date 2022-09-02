@@ -2,7 +2,7 @@
 # define LOCATION_INFO_HPP
 
 # include <list>
-# include <map>
+# include <set>
 # include <iostream>
 # include <string>
 # include <sstream>
@@ -10,8 +10,8 @@ class LocationInfo {
 	private :
 		std::string 						_type;
 		std::string 						_location;
-		std::map<std::string, std::string> 	_config;
-		std::list<LocationInfo>				_downGrade;
+		std::set<std::string, std::string> 	_config;
+		std::list<LocationInfo*>			_downGrade;
 		
 	public :
 		LocationInfo();
@@ -20,15 +20,15 @@ class LocationInfo {
 		LocationInfo& operator = (const LocationInfo& op);
 
 		void	configMapPushBack(std::string key, std::string value);
-		void	configListPushBack(LocationInfo config);
+		void	configListPushBack(LocationInfo* config);
 
 		void	setType(std::string type) 			{ _type = type; }
 		void	setLocation(std::string location) 	{ _location = location; }
 
 		const std::string& getType() const { return _type; };
 		const std::string& getLocation() const { return _location; };
-		const std::list<LocationInfo>& getDownGradeList() const { return _downGrade; };
-		const std::map<std::string, std::string>& getConfigList() const {return _config; };
+		const std::list<LocationInfo*>& getDownGradeList() const { return _downGrade; };
+		const std::set<std::string, std::string>& getConfigList() const {return _config; };
 };
 
 #endif

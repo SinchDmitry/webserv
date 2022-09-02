@@ -96,7 +96,7 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 			downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
 		}
 	}
-	localHead.configListPushBack(*downGrade);
+	localHead.configListPushBack(downGrade);
 }
 
 void recoursePrinter(LocationInfo* locationInf) {
@@ -112,13 +112,13 @@ void recoursePrinter(LocationInfo* locationInf) {
 				" | value : " << configIter->second << std::endl;
 		}
 	}
-	std::list<LocationInfo> location = locationInf->getDownGradeList();
+	std::list<LocationInfo*> location = locationInf->getDownGradeList();
 	// std::cout << "size : " << location.size() << std::endl;
 	if (!location.empty()) {
-		for (std::list<LocationInfo>::iterator locationIter = location.begin(); 
+		for (std::list<LocationInfo*>::iterator locationIter = location.begin(); 
 			locationIter != location.end(); ++locationIter) {
 				std::cout << "-==INCLUDE==-" << std::endl;
-				recoursePrinter(&*locationIter);
+				recoursePrinter(*locationIter);
 		}
 	}
 	std::cout << "-==END of " << locationInf->getType() << " ==-" << std::endl;
