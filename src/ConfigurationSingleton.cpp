@@ -94,6 +94,15 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 		} else if (infoString.size() == 2) {
 			std::list<std::string>::iterator tmpIter = ++infoString.begin();
 			downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
+		} else if (infoString.size() > 2) {
+			std::string stringUnion;
+			for (std::list<std::string>::iterator tmpIter = ++infoString.begin(); 
+				tmpIter != infoString.end(); ++tmpIter) {
+					stringUnion += *tmpIter;
+			}
+			downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
+		} else {
+			exit(1);
 		}
 	}
 	localHead.configListPushBack(downGrade);
@@ -103,10 +112,10 @@ void recoursePrinter(LocationInfo* locationInf) {
 	std::cout << "-==GENERAL==-" << std::endl;
 	std::cout << "type : " << locationInf->getType() << std::endl;
 	std::cout << "lctn : " << locationInf->getLocation() << std::endl;
-	std::map<std::string, std::string> config = locationInf->getConfigList();
+	std::multimap<std::string, std::string> config = locationInf->getConfigList();
 	if (!config.empty()) {
 		std::cout << "-==DATA==-" << std::endl;
-		for (std::map<std::string, std::string>::iterator configIter = config.begin(); 
+		for (std::multimap<std::string, std::string>::iterator configIter = config.begin(); 
 			configIter != config.end(); ++configIter) {
 			std::cout << "parameter : " << configIter->first << 
 				" | value : " << configIter->second << std::endl;
