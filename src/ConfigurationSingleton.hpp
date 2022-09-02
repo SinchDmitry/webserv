@@ -3,7 +3,6 @@
 
 #include "LocationInfo.hpp"
 #include <fstream>
-#include <algorithm>
 
 class ConfigurationSingleton {
 	private :

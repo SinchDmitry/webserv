@@ -1,4 +1,5 @@
 #include "ConfigurationSingleton.hpp"
+#include <cstring>
 
 ConfigurationSingleton::ConfigurationSingleton() : _tree(NULL) {
 	fileParse(fileInit());
@@ -87,6 +88,15 @@ LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>:
 		} else if (infoString.size() == 2) {
 			std::list<std::string>::iterator tmpIter = ++infoString.begin();
 			downGrade.configMapPushBack(*infoString.begin(), *tmpIter);
+		}
+	}
+	std::list<LocationInfo> location = downGrade.getDownGradeList();
+	// std::cout << "size : " << locationInf->getType() << std::endl;
+	if (!location.empty()) {
+		for (std::list<LocationInfo>::iterator locationIter = location.begin(); 
+			locationIter != location.end(); ++locationIter) {
+				std::cout << "in recource : -==INCLUDE==-" << std::endl;
+				// recoursePrinter(&*locationIter);
 		}
 	}
 	return downGrade;
