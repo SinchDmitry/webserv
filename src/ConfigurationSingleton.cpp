@@ -1,6 +1,8 @@
 #include "ConfigurationSingleton.hpp"
 #include <cstring>
 
+void recoursePrinter(LocationInfo* locationInf);
+
 ConfigurationSingleton::ConfigurationSingleton() : _tree(NULL) {
 	fileParse(fileInit());
 }
@@ -31,7 +33,7 @@ std::list<std::string> ConfigurationSingleton::split(const std::string& str, std
 
 std::list<std::string>	ConfigurationSingleton::fileInit() {
 	std::ifstream file;
-	file.open("configuration.conf", std::ios::in | std::ios::ate);
+	file.open("/Users/aarchiba/Desktop/streamWebserv/configuration.conf", std::ios::in | std::ios::ate);
 	if (file.fail()) {
 		perror("Error : can't open input file");
 		exit(1);
@@ -54,21 +56,25 @@ std::list<std::string>	ConfigurationSingleton::fileInit() {
 	return configInfo;
 }
 
-LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>::iterator* stringParserIterator) {
-	LocationInfo downGrade;
-	std::list<std::string> infoString = split(**stringParserIterator, " \t\r\v\n\f");
+void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead, 
+	std::list<std::string>::iterator& stringParserIterator) {
+	LocationInfo *downGrade = new LocationInfo();
+	std::list<std::string> infoString = split(*stringParserIterator, " \t\r\v\n\f");
+	// std::cout << "here open : "<< *stringParserIterator << 
+	// 				" size : " << infoString.size() << std::endl;
 	if (infoString.size() == 2) {
-		downGrade.setType(*infoString.begin());
+		downGrade->setType(*infoString.begin());
 	} else if (infoString.size() == 3) {
-		std::list<std::string>::iterator tmpIter = infoString.begin()++;
-		downGrade.setType(*infoString.begin());
-		downGrade.setLocation(*tmpIter);
+		std::list<std::string>::iterator tmpIter = ++infoString.begin();
+		// std::cout << "here push : "<< *tmpIter << std::endl;
+		downGrade->setType(*infoString.begin());
+		downGrade->setLocation(*tmpIter);
 	} else {
 		exit(1);
 	}
 	while (true) {
-		++(*stringParserIterator);
-		infoString = split(**stringParserIterator, " \t\r\v\n\f");
+		++(stringParserIterator);
+		infoString = split(*stringParserIterator, " \t\r\v\n\f");
 		if (*infoString.begin() == "#") {
 			continue;
 		}
@@ -77,7 +83,7 @@ LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>:
 			if (*tmpIter == "{") {
 				// std::cout << "here open : "<< **stringParserIterator << 
 				// 	" size : " << infoString.size() << std::endl;
-				downGrade.configListPushBack(downgradeConfigList(stringParserIterator));
+				downgradeConfigList(*downGrade, stringParserIterator);
 				continue;
 			} 
 			if (*tmpIter == "}") {
@@ -87,19 +93,10 @@ LocationInfo ConfigurationSingleton::downgradeConfigList(std::list<std::string>:
 			} 
 		} else if (infoString.size() == 2) {
 			std::list<std::string>::iterator tmpIter = ++infoString.begin();
-			downGrade.configMapPushBack(*infoString.begin(), *tmpIter);
+			downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
 		}
 	}
-	std::list<LocationInfo> location = downGrade.getDownGradeList();
-	// std::cout << "size : " << locationInf->getType() << std::endl;
-	if (!location.empty()) {
-		for (std::list<LocationInfo>::iterator locationIter = location.begin(); 
-			locationIter != location.end(); ++locationIter) {
-				std::cout << "in recource : -==INCLUDE==-" << std::endl;
-				// recoursePrinter(&*locationIter);
-		}
-	}
-	return downGrade;
+	localHead.configListPushBack(*downGrade);
 }
 
 void recoursePrinter(LocationInfo* locationInf) {
@@ -116,7 +113,7 @@ void recoursePrinter(LocationInfo* locationInf) {
 		}
 	}
 	std::list<LocationInfo> location = locationInf->getDownGradeList();
-	// std::cout << "size : " << locationInf->getType() << std::endl;
+	// std::cout << "size : " << location.size() << std::endl;
 	if (!location.empty()) {
 		for (std::list<LocationInfo>::iterator locationIter = location.begin(); 
 			locationIter != location.end(); ++locationIter) {
@@ -135,7 +132,7 @@ void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
 		if (*stringParserIterator != "" && *(--infoString.end()) == "{") {
 			// std::cout << "init open : "<< *stringParserIterator << 
 				// " size : " << infoString.size() << std::endl;
-			treeHead->configListPushBack(downgradeConfigList(&stringParserIterator)); // рекурсивная функция
+			downgradeConfigList(*treeHead, stringParserIterator); // рекурсивная функция
 		}
 		++stringParserIterator;
 	}
