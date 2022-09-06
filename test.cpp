@@ -13,15 +13,15 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-int main() {
-	std::string a = "123,432,71283,1238";
-    std::vector<std::string> arr = split(a, ',');
-    
-    for(const std::string& it : arr) {
-        std::cout << it << " ";
-	}
-	std::cout << std::endl;
-}
+//int main() {
+//	std::string a = "123,432,71283,1238";
+//    std::vector<std::string> arr = split(a, ',');
+//
+//    for(const std::string& it : arr) {
+//        std::cout << it << " ";
+//	}
+//	std::cout << std::endl;
+//}
 
 
 // #include <iostream>
