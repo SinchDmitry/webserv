@@ -225,7 +225,16 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
 }
 
 void    Server::createListSockets() {
+	/* in work
+	ConfigurationSingleton* alpha = alpha->getInstance();
+	LocationInfo root = *(alpha->getTreeHead());
+	while ((**(root.getDownGradeList().begin())).getType() != "server") {
+		root = **(root.getDownGradeList().begin());
+	}
+    for (int i = 0; i < root.getConfigList().size(); ++i) {
+	*/
     for (int i = 0; i < _numOfListenSocket; ++i) {
+
         int tmpFd = initListningSocket();
         std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;
         if (tmpFd != SOCKET_ERROR) {

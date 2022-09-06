@@ -6,7 +6,7 @@
 
 class ConfigurationSingleton {
 	private :
-		LocationInfo*					_tree;
+		LocationInfo*	_tree;
 
 		ConfigurationSingleton(void);
 		ConfigurationSingleton(const ConfigurationSingleton& copy);
@@ -20,6 +20,7 @@ class ConfigurationSingleton {
 
 	public :
 		static ConfigurationSingleton* getInstance(void);
+		LocationInfo* getTreeHead(void) const { return _tree; } 
 } ;
 
 #endif
