@@ -173,13 +173,13 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
     //     << "<pre>" << buf << "</pre>\n" 
     //     << "<em><small>Test C++ Http Server</small></em>\n";
 
-    file.open("resources/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
+    // file.open("resources/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
 	int size;
     if (!headerFlag) {
         /* заголовок */
-		// file.open("/Users/aarchiba/Desktop/webserv/resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
-		// file.open("/Users/aarchiba/Desktop/webserv/page.html", std::ios::in | std::ios::binary | std::ios::ate);
-		// file.open("/Users/aarchiba/Desktop/webserv/resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
+		// file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
+		// file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
+		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.fail()) {
 			perror("Error : can't open input file");
 			exit(1);
@@ -188,10 +188,10 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
 		std::cout << "Content size : " << size << std::endl;
         response << "HTTP/1.1 200 OK\r\n"
             << "Version: HTTP/1.1\r\n"
-            << "Content-Type: video/mp4; charset=utf-8\r\n"
+            // << "Content-Type: video/mp4; charset=utf-8\r\n"
             // << "Content-Type: image/png; charset=utf-8\r\n"
             // << "Content-Type: text/html; charset=utf-8\r\n"
-            // << "Content-Type: audio/mpeg; charset=utf-8\r\n"
+            << "Content-Type: audio/mpeg; charset=utf-8\r\n"
             << "Content-Length: " << size << "\r\n\r\n";
         if (send(clientSocket, response.str().c_str(), response.str().length(), 0) == SOCKET_ERROR) {
             perror("Error : send message failure");

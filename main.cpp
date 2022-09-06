@@ -2,8 +2,8 @@
 #include "src/Server.hpp"
 
 int main() {
-    // Server testServer;
-	ConfigurationSingleton* alpha = alpha->getInstance(); 
-    // testServer.run();
+    Server testServer;
+	// ConfigurationSingleton* alpha = alpha->getInstance(); 
+    testServer.run();
     return 0;
 }
