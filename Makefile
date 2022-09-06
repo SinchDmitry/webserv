@@ -12,7 +12,7 @@ DEP				= $(SRCS:.cpp=.d)
 CXX				= c++
 
 RM				= rm -f
-CXXFLAGS		= -MD -std=c++98 -I.
+CXXFLAGS		= -MD -std=c++98 -I. -g
 # -Wall -Wextra -Werror  
 
 

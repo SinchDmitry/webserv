@@ -3,7 +3,6 @@
 
 #include "LocationInfo.hpp"
 #include <fstream>
-#include <algorithm>
 
 class ConfigurationSingleton {
 	private :
@@ -16,7 +15,8 @@ class ConfigurationSingleton {
 		std::list<std::string>  split(const std::string& str, std::string myDelim);
 		std::list<std::string>	fileInit();
 		void					fileParse(std::list<std::string> inputFile);
-		LocationInfo 			downgradeConfigList(std::list<std::string>::iterator* a);
+		void 					downgradeConfigList(LocationInfo& localHead, 
+									std::list<std::string>::iterator& stringParserIterator);
 
 	public :
 		static ConfigurationSingleton* getInstance(void);

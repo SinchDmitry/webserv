@@ -19,6 +19,6 @@ void	LocationInfo::configMapPushBack(std::string key, std::string value) {
 	_config.insert(std::pair<std::string, std::string>(key, value));
 }
 
-void	LocationInfo::configListPushBack(LocationInfo config) {
+void	LocationInfo::configListPushBack(LocationInfo* config) {
 	_downGrade.push_back(config);
 }
