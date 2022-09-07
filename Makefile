@@ -2,8 +2,9 @@ NAME			= 	webserv
 VPATH			=	src/
 SRCS			=	main.cpp \
 					Server.cpp \
-					ConfigurationSingleton.cpp \
+					ListenSocket.cpp \
 					LocationInfo.cpp \
+					ConfigurationSingleton.cpp \
 					Request.cpp
 
 

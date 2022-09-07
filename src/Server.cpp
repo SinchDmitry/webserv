@@ -1,5 +1,4 @@
 #include "Server.hpp"
-#include <fstream>
 
 /* debag funtions */
 void    printFdsArray(pollfd *fds, int nfds) {
@@ -235,15 +234,18 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
 }
 
 void    Server::createListSockets() {
-	/* in work
+	/* in work */
 	ConfigurationSingleton* alpha = alpha->getInstance();
-	LocationInfo root = *(alpha->getTreeHead());
-	while ((**(root.getDownGradeList().begin())).getType() != "server") {
-		root = **(root.getDownGradeList().begin());
+	LocationInfo* root = (alpha->getTreeHead());
+	while (!root->getDownGradeList().empty() && (*(root->getDownGradeList().begin()))->getType() != "server") {
+		std::cout << "here" << std::endl;
+		root = *(root->getDownGradeList().begin());
 	}
-    for (int i = 0; i < root.getConfigList().size(); ++i) {
-	*/
-    for (int i = 0; i < _numOfListenSocket; ++i) {
+	std::cout << root->getType() << std::endl;
+
+    for (int i = 0; i < root->getDownGradeList().size(); ++i) {
+	
+    // for (int i = 0; i < _numOfListenSocket; ++i) {
 
         int tmpFd = initListningSocket();
         std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;

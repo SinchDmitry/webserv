@@ -1,16 +1,20 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include <iostream>
-# include <sstream>
 # include <unistd.h>
-# include <string>
 # include <sys/poll.h>
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <fcntl.h>
+# include <list>
+# include <map>
+# include <iostream>
+# include <string>
+# include <sstream>
+# include <fstream>
+# include <cstring>
 # include "ConfigurationSingleton.hpp"
 # include "Request.hpp"
 
