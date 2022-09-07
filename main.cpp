@@ -3,7 +3,6 @@
 
 int main() {
     Server testServer;
-	// ConfigurationSingleton* alpha = alpha->getInstance();
     testServer.run();
 //    std::map<std::string, std::string> body;
 //    body.insert(std::pair<std::string, std::string>("1", "1"));

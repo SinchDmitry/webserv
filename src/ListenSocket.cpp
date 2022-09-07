@@ -16,7 +16,7 @@ ListenSocket::ListenSocket(LocationInfo* server)
 	_locations = server->getDownGradeList();
 
 	/* debug / constructor printer */
-	std::cout << this;
+	// std::cout << this;
 }
 
 std::list<std::string> ListenSocket::split(const std::string& str, std::string myDelim) {

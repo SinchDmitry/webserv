@@ -27,12 +27,12 @@ class ListenSocket {
 
 };
 
-std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {
-	os	<< "Socket name : " << soc.getName() << std::endl 
-		<< "IP address : " << soc.getIP() << std::endl 
-		<< "Listen port : " << soc.getPort() << std::endl
-		<< "Number of locations inside : " << soc.getLocationSize() << std::endl;
-    return os;
-}
+// std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {
+// 	os	<< "Socket name : " << soc.getName() << std::endl 
+// 		<< "IP address : " << soc.getIP() << std::endl 
+// 		<< "Listen port : " << soc.getPort() << std::endl
+// 		<< "Number of locations inside : " << soc.getLocationSize() << std::endl;
+//     return os;
+// }
 
 #endif

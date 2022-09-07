@@ -17,6 +17,8 @@
 # include <cstring>
 # include "ConfigurationSingleton.hpp"
 # include "Request.hpp"
+# include "LocationInfo.hpp"
+# include "ListenSocket.hpp"
 
 # define END_ERROR          1
 # define SOCKET_ERROR       -1
@@ -24,6 +26,8 @@
 # define EMPTY_BUFFER       0
 # define IP_ADDRESS         "127.0.0.1"
 # define READ_BUFFER_SIZE   10000
+
+class ListenSocket;
 
 class Server
 {
@@ -36,7 +40,7 @@ class Server
 
 		/* functions */
         bool        findInListenSockets(int fd);
-		sockaddr_in setIdInfo();
+		sockaddr_in setIdInfo(ListenSocket serverInfo);
 		int  		addNewClientSocket(int &nfds, int i);
 		void		closeClientSocket(int &nfds, int &i);
 		int			waitForPoll(int nfds);
@@ -45,7 +49,7 @@ class Server
         Server();
         ~Server();
 
-        int         initListningSocket();
+        int         initListningSocket(ListenSocket serverInfo);
         int         initPoll(int listningSocket);
         void        run();
         std::string readHTTPHead(int clientSocket);

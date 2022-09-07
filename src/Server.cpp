@@ -17,13 +17,12 @@ Server::~Server(){}
 
 /* private class functiones */
 
-sockaddr_in Server::setIdInfo() {
+sockaddr_in Server::setIdInfo(ListenSocket serverInfo) {
 	struct sockaddr_in addr;    // информация об IP адресе	
 	/* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */ 
 	addr.sin_family = AF_INET;  // IPv4 протоколы Интернет
-	// addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);    
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	addr.sin_port = htons(_port++);
+	addr.sin_addr.s_addr = inet_addr(serverInfo.getIP().c_str());    
+	addr.sin_port = htons(serverInfo.getPort());
 	return addr;
 }
 
@@ -72,8 +71,8 @@ int Server::waitForPoll(int nfds) {
 
 /* public clss functiones */
 
-int Server::initListningSocket() {
-	struct sockaddr_in addr = setIdInfo();    
+int Server::initListningSocket(ListenSocket serverInfo) {
+	struct sockaddr_in addr = setIdInfo(serverInfo);    
 	int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
 	if (listningSocket == SOCKET_ERROR) {
 	    perror("Error : cannot create a socket");
@@ -222,7 +221,6 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
     // readCounter += READ_BUFFER_SIZE;
 //	std::cout << "counter pos : " << file.tellg() << std::endl;
     if (file.eof()) {
-    // if (file.tellg() >= size) {
 		std::cout << "I'M DONE" << std::endl;
         headerFlag = false;
 		file.clear();
@@ -237,17 +235,17 @@ void    Server::createListSockets() {
 	/* in work */
 	ConfigurationSingleton* alpha = alpha->getInstance();
 	LocationInfo* root = (alpha->getTreeHead());
+	/* поиск пространства с информацией о listen socket */
 	while (!root->getDownGradeList().empty() && (*(root->getDownGradeList().begin()))->getType() != "server") {
-		std::cout << "here" << std::endl;
 		root = *(root->getDownGradeList().begin());
 	}
-	std::cout << root->getType() << std::endl;
-
+	/* лист с информацией о listen socket ах, который надо обработать при инициализации сокетов */
+	std::list<LocationInfo*>::const_iterator listOfServerIter = root->getDownGradeList().begin();
+	std::cout << (*listOfServerIter)->getType() << std::endl;
+	/* инифиализация сокетов */
     for (int i = 0; i < root->getDownGradeList().size(); ++i) {
-	
-    // for (int i = 0; i < _numOfListenSocket; ++i) {
-
-        int tmpFd = initListningSocket();
+		ListenSocket *newSocketFromConfig = new ListenSocket(*(listOfServerIter++));
+        int tmpFd = initListningSocket(*newSocketFromConfig);
         std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;
         if (tmpFd != SOCKET_ERROR) {
             _fds[i].fd = tmpFd;

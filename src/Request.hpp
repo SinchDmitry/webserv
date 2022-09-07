@@ -3,11 +3,9 @@
 //
 
 #ifndef REQUEST_HPP
-#define REQUEST_HPP
+# define REQUEST_HPP
 
-#include <iostream>
-#include <map>
-#include <list>
+# include "Server.hpp"
 
 class Request {
 private:
