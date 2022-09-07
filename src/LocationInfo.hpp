@@ -1,17 +1,15 @@
 #ifndef LOCATION_INFO_HPP
 # define LOCATION_INFO_HPP
 
-# include <list>
-# include <map>
-# include <iostream>
-# include <string>
-# include <sstream>
+#include "Server.hpp"
+
 class LocationInfo {
 	private :
-		std::string 						_type;
-		std::string 						_location;
+		/* variables */
+		std::string 								_type;
+		std::string 								_location;
 		std::multimap<std::string, std::string> 	_config;
-		std::list<LocationInfo*>			_downGrade;
+		std::list<LocationInfo*>					_downGrade;
 		
 	public :
 		LocationInfo();
@@ -25,10 +23,10 @@ class LocationInfo {
 		void	setType(std::string type) 			{ _type = type; }
 		void	setLocation(std::string location) 	{ _location = location; }
 
-		const std::string& getType() const 								{ return _type; };
-		const std::string& getLocation() const 							{ return _location; };
-		const std::list<LocationInfo*>& getDownGradeList() const 		{ return _downGrade; };
-		const std::multimap<std::string, std::string>& getConfigList() const { return _config; };
+		const std::string& getType() const 										{ return _type; };
+		const std::string& getLocation() const 									{ return _location; };
+		const std::list<LocationInfo*>& getDownGradeList() const 				{ return _downGrade; };
+		const std::multimap<std::string, std::string>& getConfigList() const 	{ return _config; };
 };
 
 #endif

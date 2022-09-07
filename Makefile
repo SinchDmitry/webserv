@@ -2,8 +2,9 @@ NAME			= 	webserv
 VPATH			=	src/
 SRCS			=	main.cpp \
 					Server.cpp \
+					ListenSocket.cpp \
+					LocationInfo.cpp \
 					ConfigurationSingleton.cpp \
-					LocationInfo.cpp
 
 
 OBJS			= $(SRCS:.cpp=.o)
