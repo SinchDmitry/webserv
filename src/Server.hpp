@@ -12,6 +12,7 @@
 # include <netdb.h>
 # include <fcntl.h>
 # include "ConfigurationSingleton.hpp"
+# include "Request.hpp"
 
 # define END_ERROR          1
 # define SOCKET_ERROR       -1

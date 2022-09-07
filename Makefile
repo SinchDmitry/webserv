@@ -3,7 +3,8 @@ VPATH			=	src/
 SRCS			=	main.cpp \
 					Server.cpp \
 					ConfigurationSingleton.cpp \
-					LocationInfo.cpp
+					LocationInfo.cpp \
+					Request.cpp
 
 
 OBJS			= $(SRCS:.cpp=.o)
