@@ -1,7 +1,10 @@
 #ifndef LOCATION_INFO_HPP
 # define LOCATION_INFO_HPP
 
-#include "Server.hpp"
+# include <fstream>
+# include <map>
+# include <string>
+# include <list>
 
 class LocationInfo {
 	private :

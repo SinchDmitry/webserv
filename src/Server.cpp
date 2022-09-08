@@ -41,6 +41,7 @@ int Server::addNewClientSocket(int &nfds, int i) {
 	_fds[nfds].fd = clientSocket;
 	_fds[nfds].events = POLLIN;
 	_fds[nfds].revents = 0;
+	_activeClients.push_back(new ClientSocket(clientSocket));
 	nfds++;
 	return 0;
 }
@@ -104,7 +105,6 @@ void Server::run() {
 		}
         /* ожидает запрос на установку TCP-соединения от удаленного хоста. */
         static int readCounter;
-		std::list<ClientSocket*> activeClients;
         for (int i = 0; i < nfds; ++i) {
             std::string buffer;
             if (_fds[i].revents == 0) {
@@ -115,12 +115,13 @@ void Server::run() {
 				}
             } else if (_fds[i].revents == POLLIN) {
 				/* in work
-				activeClients.push_back(new ClientSocket(_fds[i].fd));
+					_activeClients.push_back(new ClientSocket(_fds[i].fd));
 				*/
                 buffer = readHTTPHead(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
             } else if (_fds[i].revents == POLLOUT) {
+				// activeClients.
                 if (sendTestMessage(_fds[i].fd, buffer, readCounter)) {
                     _fds[i].events = POLLIN;
                 }
@@ -155,8 +156,8 @@ std::string Server::readHTTPHead(int clientSocket) {
     }
     buffer[buffer.length()] = '\0';
 
-    Request* request = new Request(buffer.substr(0, buffer.find(" ")));
-    request->parseRequest(buffer);
+    // Request* request = new Request(buffer.substr(0, buffer.find(" ")));
+    // request->parseRequest(buffer);
     return buffer;
 }
 

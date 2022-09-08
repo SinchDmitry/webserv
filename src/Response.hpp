@@ -3,10 +3,11 @@
 //
 
 #ifndef RESPONSE_HPP
-#define RESPONSE_HPP
+# define RESPONSE_HPP
 
-#include "Server.hpp"
-
+# include <map>
+# include <string>
+# include <list>
 
 class Response {
 private:

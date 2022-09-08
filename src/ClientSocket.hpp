@@ -1,14 +1,18 @@
 #ifndef CLIENT_SOCKET_HPP
 # define CLIENT_SOCKET_HPP
 
-# include "Server.hpp"
+# include "Request.hpp"
+# include "Response.hpp"
+
+class Response;
+class Request;
 
 class ClientSocket {
 	private:
 		/* variables */
-		int 				_fd;
-		Request				_inputRequest;
-		Response			_outputResponce;
+		int 			_fd;
+		Request			_inputRequest;
+		Response		_outputResponse;
 
 	public:
 		/* constructors */
@@ -22,8 +26,8 @@ class ClientSocket {
 
 		/* getters */
 		int	getFD(void) const 					{ return _fd; }
-		const Request	getRequest(void) const	{ return _inputRequest; }
-		const Response	getResponse(void) const	{ return _outputResponce; }
+		const Request&	getRequest(void) const	{ return _inputRequest; }
+		const Response&	getResponse(void) const	{ return _outputResponse; }
 
 };
 

@@ -1,7 +1,8 @@
 #ifndef LISTEN_SOCKET_HPP
 # define LISTEN_SOCKET_HPP
 
-# include "Server.hpp"
+# include <fstream>
+# include "LocationInfo.hpp"
 
 class ListenSocket {
 	private:

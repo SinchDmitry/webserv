@@ -3,6 +3,7 @@ VPATH			=	src/
 SRCS			=	main.cpp \
 					Server.cpp \
 					ListenSocket.cpp \
+					ClientSocket.cpp \
 					LocationInfo.cpp \
 					ConfigurationSingleton.cpp \
 					Request.cpp \

@@ -1,7 +1,6 @@
 #ifndef CONFIGURATIONSINGLETON_HPP
 # define CONFIGURATIONSINGLETON_HPP
 
-# include "Server.hpp"
 # include "LocationInfo.hpp"
 
 class LocationInfo;

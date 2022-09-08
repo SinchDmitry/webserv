@@ -8,17 +8,12 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <fcntl.h>
-# include <list>
-# include <map>
 # include <iostream>
-# include <string>
 # include <sstream>
 # include <fstream>
 # include <cstring>
+
 # include "ConfigurationSingleton.hpp"
-# include "Request.hpp"
-# include "Response.hpp"
-# include "LocationInfo.hpp"
 # include "ListenSocket.hpp"
 # include "ClientSocket.hpp"
 
@@ -35,8 +30,9 @@ class Server
 {
     private:
 		/* variables */
-        pollfd      _fds[200];
-        int         _numOfListenSocket;
+        pollfd      				_fds[200];
+        int         				_numOfListenSocket;
+		std::list<ClientSocket*> 	_activeClients;
 
 		/* functions */
         bool        findInListenSockets(int fd);

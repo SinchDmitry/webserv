@@ -5,12 +5,15 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "Server.hpp"
+# include <map>
+# include <string>
+# include <list>
 
 class Request {
 private:
     std::map<std::string, std::string>  _body;
     std::string _method;
+    std::list<std::string> split(const std::string& str, std::string myDelim);
 
 public:
     Request();
@@ -25,9 +28,6 @@ public:
     void bodyMapPushBack(std::string key, std::string value);
     void setMethod( const std::string method ) { _method = method; };
     void parseRequest( std::string buffer );
-    std::list<std::string> split(const std::string& str, std::string myDelim);
-
 };
-
 
 #endif //REQUEST_HPP
