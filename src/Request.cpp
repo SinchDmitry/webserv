@@ -27,8 +27,19 @@ void Request::bodyMapPushBack(std::string key, std::string value) {
 void Request::parseRequest(std::string buffer) {
     std::list<std::string> rawData = split(buffer, "\n");
     std::list<std::string>::const_iterator it = ++rawData.begin();
-    for(; it != rawData.end() && (*it).length() > 1; ++it) {
-        bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+    if (!_method.compare("GET")) {
+        for(; it != rawData.end() && (*it).length() > 1; ++it) {
+            bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+        }
+    } else {
+        for(; it != rawData.end(); ++it) {
+            if (it == rawData.end() - 2) {
+                bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+            } else {
+                bodyMapPushBack("Message-body", *it);
+            }
+        }
+
     }
 }
 

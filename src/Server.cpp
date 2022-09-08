@@ -157,13 +157,7 @@ std::string Server::readHTTPHead(int clientSocket) {
     buffer[buffer.length()] = '\0';
 
     Request* request = new Request(buffer.substr(0, buffer.find(" ")));
-//    std::cout << "BUFFER\n" << buffer << "BUFFER END" << std::endl;
-//    std::cout << "\nPARSE -> " << std::endl;
     request->parseRequest(buffer);
-//    for(std::map<std::string, std::string>::const_iterator it = request->getBody().begin();
-//            it != request->getBody().end(); ++it) {
-//        std::cout << it->first << " <-> " << it->second << "\n";
-//    }
     return buffer;
 }
 
