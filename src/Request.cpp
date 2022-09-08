@@ -33,7 +33,8 @@ void Request::parseRequest(std::string buffer) {
         }
     } else {
         for(; it != rawData.end(); ++it) {
-            if (it == rawData.end() - 2) {
+//            std::list<std::string>::const_iterator
+            if (it == --rawData.end()) {
                 bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
             } else {
                 bodyMapPushBack("Message-body", *it);

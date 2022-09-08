@@ -17,6 +17,7 @@
 # include <cstring>
 # include "ConfigurationSingleton.hpp"
 # include "Request.hpp"
+# include "Response.hpp"
 # include "LocationInfo.hpp"
 # include "ListenSocket.hpp"
 
