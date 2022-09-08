@@ -11,6 +11,7 @@ void    printFdsArray(pollfd *fds, int nfds) {
 }
 
 /* class constructors/destructors */
+Server::Server(){}
 Server::~Server(){}
 
 /* private class functiones */
@@ -68,7 +69,7 @@ int Server::waitForPoll(int nfds) {
 
 /* public clss functiones */
 int Server::initListningSocket(ListenSocket serverInfo) {
-	struct sockaddr_in addr = setIdInfo(serverInfo);    
+	struct sockaddr_in addr = setIdInfo(serverInfo);
 	int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
 	if (listningSocket == SOCKET_ERROR) {
 	    perror("Error : cannot create a socket");
@@ -222,16 +223,15 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
 }
 
 void    Server::createListSockets() {
-	/* in work */
-	ConfigurationSingleton* alpha = alpha->getInstance();
-	LocationInfo* root = (alpha->getTreeHead());
+	ConfigurationSingleton* infoFromConfig = infoFromConfig->getInstance();
+	LocationInfo* root = (infoFromConfig->getTreeHead());
 	/* поиск пространства с информацией о listen socket */
 	while (!root->getDownGradeList().empty() && (*(root->getDownGradeList().begin()))->getType() != "server") {
 		root = *(root->getDownGradeList().begin());
 	}
 	/* лист с информацией о listen socket ах, который надо обработать при инициализации сокетов */
 	std::list<LocationInfo*>::const_iterator listOfServerIter = root->getDownGradeList().begin();
-	std::cout << (*listOfServerIter)->getType() << std::endl;
+	// std::cout << (*listOfServerIter)->getType() << std::endl;
 	_numOfListenSocket = root->getDownGradeList().size();
 	/* инифиализация сокетов */
     for (int i = 0; i < _numOfListenSocket; ++i) {
