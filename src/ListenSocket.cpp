@@ -16,7 +16,16 @@ ListenSocket::ListenSocket(LocationInfo* server)
 	_locations = server->getDownGradeList();
 
 	/* debug / constructor printer */
-	// std::cout << this;
+	// std::cout << *this;
+}
+ListenSocket&	ListenSocket::operator = (const ListenSocket& op) {
+	if (this != &op) {
+		_port = op._port;
+		_ip = op._ip;
+		_name = op._name;
+		_locations = op._locations;
+	}
+	return *this;
 }
 
 std::list<std::string> ListenSocket::split(const std::string& str, std::string myDelim) {

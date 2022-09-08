@@ -106,6 +106,7 @@ void Server::run() {
 		}
         /* ожидает запрос на установку TCP-соединения от удаленного хоста. */
         static int readCounter;
+		std::list<ClientSocket*> activeClients;
         for (int i = 0; i < nfds; ++i) {
             std::string buffer;
             if (_fds[i].revents == 0) {
@@ -115,6 +116,9 @@ void Server::run() {
 					continue;
 				}
             } else if (_fds[i].revents == POLLIN) {
+				/* in work
+				activeClients.push_back(new ClientSocket(_fds[i].fd));
+				*/
                 buffer = readHTTPHead(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;

@@ -20,15 +20,16 @@
 # include "Response.hpp"
 # include "LocationInfo.hpp"
 # include "ListenSocket.hpp"
+# include "ClientSocket.hpp"
 
 # define END_ERROR          1
+# define EMPTY_BUFFER		0
 # define SOCKET_ERROR       -1
 # define MAX_SHORT          32767
-# define EMPTY_BUFFER       0
-# define IP_ADDRESS         "127.0.0.1"
 # define READ_BUFFER_SIZE   10000
 
 class ListenSocket;
+class ClientSocket;
 
 class Server
 {

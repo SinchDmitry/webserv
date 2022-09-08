@@ -98,7 +98,7 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 	}
 	localHead.configListPushBack(downGrade);
 }
-/* debug function
+/* debug function / recource printer
 void recoursePrinter(LocationInfo* locationInf) {
 	std::cout << "-==GENERAL==-" << std::endl;
 	std::cout << "type : " << locationInf->getType() << std::endl;

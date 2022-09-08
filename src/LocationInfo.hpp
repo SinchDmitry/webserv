@@ -16,6 +16,7 @@ class LocationInfo {
 		LocationInfo(std::string name, std::string location);
 		LocationInfo(const LocationInfo& copy);
 		LocationInfo& operator = (const LocationInfo& op);
+		~LocationInfo() {}
 
 		void	configMapPushBack(std::string key, std::string value);
 		void	configListPushBack(LocationInfo* config);

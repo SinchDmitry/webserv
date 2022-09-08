@@ -17,6 +17,8 @@ class ListenSocket {
 	public:
 		/* constructors */
 		ListenSocket(LocationInfo* server);
+		ListenSocket(const ListenSocket& copy)  { *this = copy; }
+		ListenSocket& operator = (const ListenSocket& op);
 		~ListenSocket() {}
 
 		/* getters */
@@ -24,15 +26,16 @@ class ListenSocket {
 		int getLocationSize(void) const 		{ return _locations.size(); }
 		const std::string&	getIP(void) const	{ return _ip; }
 		const std::string&	getName(void) const	{ return _name; }
-
 };
 
-// std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {
-// 	os	<< "Socket name : " << soc.getName() << std::endl 
-// 		<< "IP address : " << soc.getIP() << std::endl 
-// 		<< "Listen port : " << soc.getPort() << std::endl
-// 		<< "Number of locations inside : " << soc.getLocationSize() << std::endl;
-//     return os;
-// }
+static std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {
+	os	<< "================== start ==================" << std::endl
+		<< "Socket name : " << soc.getName() << std::endl 
+		<< "IP address : " << soc.getIP() << std::endl 
+		<< "Listen port : " << soc.getPort() << std::endl 
+		<< "Number of locations inside : " << soc.getLocationSize() << std::endl
+		<< "=================== end ===================" << std::endl;
+    return os;
+}
 
 #endif
