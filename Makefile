@@ -5,7 +5,8 @@ SRCS			=	main.cpp \
 					ListenSocket.cpp \
 					LocationInfo.cpp \
 					ConfigurationSingleton.cpp \
-					Request.cpp
+					Request.cpp \
+					Response.cpp
 
 
 OBJS			= $(SRCS:.cpp=.o)
