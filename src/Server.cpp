@@ -11,12 +11,9 @@ void    printFdsArray(pollfd *fds, int nfds) {
 }
 
 /* class constructors/destructors */
-Server::Server() : _port(11000), _numOfListenSocket(5), _debagCounter(0) {} // 5 - random value
-
 Server::~Server(){}
 
 /* private class functiones */
-
 sockaddr_in Server::setIdInfo(ListenSocket serverInfo) {
 	struct sockaddr_in addr;    // информация об IP адресе	
 	/* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */ 
@@ -70,7 +67,6 @@ int Server::waitForPoll(int nfds) {
 }
 
 /* public clss functiones */
-
 int Server::initListningSocket(ListenSocket serverInfo) {
 	struct sockaddr_in addr = setIdInfo(serverInfo);    
 	int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
@@ -242,8 +238,9 @@ void    Server::createListSockets() {
 	/* лист с информацией о listen socket ах, который надо обработать при инициализации сокетов */
 	std::list<LocationInfo*>::const_iterator listOfServerIter = root->getDownGradeList().begin();
 	std::cout << (*listOfServerIter)->getType() << std::endl;
+	_numOfListenSocket = root->getDownGradeList().size();
 	/* инифиализация сокетов */
-    for (int i = 0; i < root->getDownGradeList().size(); ++i) {
+    for (int i = 0; i < _numOfListenSocket; ++i) {
 		ListenSocket *newSocketFromConfig = new ListenSocket(*(listOfServerIter++));
         int tmpFd = initListningSocket(*newSocketFromConfig);
         std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;

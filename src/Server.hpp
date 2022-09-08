@@ -34,9 +34,7 @@ class Server
     private:
 		/* variables */
         pollfd      _fds[200];
-        int         _port;
         int         _numOfListenSocket;
-        int         _debagCounter;
 
 		/* functions */
         bool        findInListenSockets(int fd);
