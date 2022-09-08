@@ -27,7 +27,7 @@ std::list<std::string> ConfigurationSingleton::split(const std::string& str, std
 
 std::list<std::string>	ConfigurationSingleton::fileInit() {
 	std::ifstream file;
-	file.open("/Users/aarchiba/Desktop/streamWebserv/configuration.conf", 
+	file.open("configuration.conf",
 		std::ios::in | std::ios::ate);
 	if (file.fail()) {
 		perror("Error : can't open input file");
