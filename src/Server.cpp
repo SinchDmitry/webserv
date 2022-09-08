@@ -11,8 +11,6 @@ void    printFdsArray(pollfd *fds, int nfds) {
 }
 
 /* class constructors/destructors */
-Server::Server(){}
-Server::~Server(){}
 
 /* private class functiones */
 sockaddr_in Server::setIdInfo(ListenSocket serverInfo) {

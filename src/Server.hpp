@@ -46,8 +46,8 @@ class Server
 		int			waitForPoll(int nfds);
 
     public:
-        Server();
-        ~Server();
+        Server(){}
+		~Server(){}
 
         int         initListningSocket(ListenSocket serverInfo);
         int         initPoll(int listningSocket);
