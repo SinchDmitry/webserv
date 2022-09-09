@@ -10,6 +10,7 @@
 # include <list>
 
 # include <fstream>
+# include <sstream>
 
 # include "Request.hpp"
 
@@ -34,7 +35,7 @@ public:
     const std::map<std::string, std::string>& getBody() const { return _body; };
     const std::map<int, std::string>& getStatusCodes() const { return _statusCodes; };
 
-    bool generateResponse(int clientSocket, Request request);
+    bool generateResponse(int clientSocket, Request request, int readCounter);
 };
 
 

@@ -21,6 +21,61 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
+bool Response::generateResponse(int clientSocket, Request request, int readCounter) {
+    std::stringstream response;
+    static std::ifstream file;
+    static bool headerFlag;
+    int size;
+
+    if (!headerFlag) {
+// file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
+        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
+//        file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
+//		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
+		if (file.fail()) {
+            perror("Error : can't open input file");
+            exit(1);
+        }
+        size = file.tellg();
+        std::cout << "Content size : " << size << std::endl;
+        response << "HTTP/1.1 200 OK\r\n"
+                 << "Version: HTTP/1.1\r\n"
+                 // << "Content-Type: video/mp4; charset=utf-8\r\n"
+                 // << "Content-Type: image/png; charset=utf-8\r\n"
+                 << "Content-Type: text/html; charset=utf-8\r\n"
+                 //            << "Content-Type: audio/mpeg; charset=utf-8\r\n"
+                 << "Content-Length: " << size << "\r\n\r\n";
+        if (send(clientSocket, response.str().c_str(), response.str().length(), 0) == SOCKET_ERROR) {
+            perror("Error : send message failure");
+            exit(SOCKET_ERROR); // correct it
+        }
+        headerFlag = true;
+    }
+
+    file.seekg(readCounter);
+    /* порционная отправка ответа */
+    char buff[READ_BUFFER_SIZE];
+    file.read(buff, READ_BUFFER_SIZE);
+//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
+    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
+    readCounter += READ_BUFFER_SIZE;
+    // if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
+    //     perror("Error : send message failure");
+    //     exit(SOCKET_ERROR); // correct it
+    // }
+    // readCounter += READ_BUFFER_SIZE;
+//	std::cout << "counter pos : " << file.tellg() << std::endl;
+    if (file.eof()) {
+        std::cout << "I'M DONE" << std::endl;
+        headerFlag = false;
+        file.clear();
+        file.close();
+        readCounter = 0;
+        return true;
+    }
+    return false;
+}
+
 //bool Response::generateResponse(int clientSocket) {
 ////    std::stringstream response;
 ////    static std::ifstream file;

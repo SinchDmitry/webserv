@@ -16,6 +16,7 @@ void ClientSocket::setRequest(int clientSocket) {
     request->parseRequest(clientSocket);
 }
 
-// void ClientSocket::setResponse() {
-	
-// }
+bool ClientSocket::setResponse(int clientSocket, int readCounter) {
+    Response* response = new Response();
+    return response->generateResponse(clientSocket, _inputRequest, readCounter);
+}

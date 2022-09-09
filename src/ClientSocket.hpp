@@ -23,6 +23,7 @@ class ClientSocket {
 
 		/* public functions */
         void setRequest(int clientSocket);
+        bool setResponse(int clientSocket, int readCounter);
 
 		/* getters */
 		int	getFD(void) const 					{ return _fd; }

@@ -40,7 +40,9 @@ class Server
 		int  		    addNewClientSocket(int &nfds, int i);
 		void		    closeClientSocket(int &nfds, int &i);
 		int			    waitForPoll(int nfds);
+
         void            setRequestByFd(int fd);
+        bool            setResponseByFd(int fd, int readCounter);
 
     public:
         Server(){}
@@ -50,7 +52,6 @@ class Server
         int         initPoll(int listningSocket);
         void        run();
 
-        bool        sendTestMessage(int clientSocket, std::string buf, int &readCounter);
         void        createListSockets();
         void        closeListSockets();
 };

@@ -3,6 +3,8 @@
 
 # include "LocationInfo.hpp"
 
+# include <iostream>
+
 class LocationInfo;
 
 class ConfigurationSingleton {

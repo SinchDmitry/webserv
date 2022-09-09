@@ -2,6 +2,7 @@
 # define LISTEN_SOCKET_HPP
 
 # include <fstream>
+# include <iostream>
 # include "LocationInfo.hpp"
 
 class ListenSocket {
