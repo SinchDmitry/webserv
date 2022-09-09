@@ -21,6 +21,14 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
+//bool Response::generateResponse(int clientSocket) {
+////    std::stringstream response;
+////    static std::ifstream file;
+//    std::cout << "ok" << std::endl;
+//
+//    return false;
+//}
+
 void Response::initStatusCodes() {
     _statusCodes[100] = "Continue";
     _statusCodes[101] = "Switching Protocols";

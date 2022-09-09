@@ -12,6 +12,7 @@
 
 # include <sys/types.h>
 # include <sys/socket.h>
+
 # define END_ERROR          1
 # define EMPTY_BUFFER		0
 # define SOCKET_ERROR       -1
@@ -21,11 +22,11 @@
 class Request {
 private:
     std::map<std::string, std::string>  _body;
-    std::string _method;
-    std::string _message;
+    std::string                         _method;
+    std::string                         _message;
 
-    std::list<std::string> split(const std::string& str, std::string myDelim);
-    bool readToBuffer( int clientSocket, bool isHeader );
+    std::list<std::string>  split(const std::string& str, std::string myDelim);
+    bool                    readToBuffer( int clientSocket, bool isHeader );
 
 public:
     Request();
@@ -34,14 +35,13 @@ public:
     Request& operator=(const Request& src);
     ~Request();
 
-    const std::map<std::string, std::string>& getBody() const  { return _body; };
-    const std::string& getMethod() const { return _method; };
-    const std::string& getMessage() const { return _message; };
+    const std::map<std::string, std::string>&   getBody() const  { return _body; };
+    const std::string&                          getMethod() const { return _method; };
+    const std::string&                          getMessage() const { return _message; };
 
     void setMethod( const std::string method ) { _method = method; };
 
     void bodyMapPushBack(std::string key, std::string value);
-//    void parseRequest( std::string buffer );
     void parseRequest(int clientSocket);
 };
 

@@ -22,7 +22,7 @@ class ClientSocket {
 		~ClientSocket() {}
 
 		/* public functions */
-
+        void setRequest(int clientSocket);
 
 		/* getters */
 		int	getFD(void) const 					{ return _fd; }

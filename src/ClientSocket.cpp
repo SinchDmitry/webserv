@@ -11,9 +11,10 @@ ClientSocket& ClientSocket::operator = (const ClientSocket& op) {
 	return *this;
 }
 
-// void ClientSocket::setRequest() {
-
-// }
+void ClientSocket::setRequest(int clientSocket) {
+    Request* request = new Request();
+    request->parseRequest(clientSocket);
+}
 
 // void ClientSocket::setResponse() {
 	

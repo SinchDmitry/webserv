@@ -47,8 +47,13 @@ int Server::addNewClientSocket(int &nfds, int i) {
 }
 
 void Server::closeClientSocket(int &nfds, int &i) {
-	std::cout << "Connection closed" << std::endl;
+	std::cout << "Connection closed : " << _fds[i].fd << std::endl;
 	close(_fds[i].fd);
+    for (std::list<ClientSocket *>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
+        if ((*it)->getFD() == _fds[i].fd) {
+            _activeClients.erase(it);
+        }
+    }
 	for (int j = i; j < nfds - 1; j++) {
 		_fds[j] = _fds[j + 1];
 	}
@@ -94,6 +99,14 @@ int Server::initListningSocket(ListenSocket serverInfo) {
 	return listningSocket;
 }
 
+void Server::setRequestByFd(int fd) {
+    for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
+        if ((*it)->getFD() == fd) {
+            (*it)->setRequest(fd);
+        }
+    }
+}
+
 void Server::run() {
     /* заполняем струтуру в которой будем хранить информацию о состоянии установленных соединений */
     createListSockets();
@@ -114,11 +127,10 @@ void Server::run() {
 					continue;
 				}
             } else if (_fds[i].revents == POLLIN) {
-                buffer = readHTTPHead(_fds[i].fd);
+                setRequestByFd(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
             } else if (_fds[i].revents == POLLOUT) {
-				// activeClients.
                 if (sendTestMessage(_fds[i].fd, buffer, readCounter)) {
                     _fds[i].events = POLLIN;
                 }
@@ -134,14 +146,9 @@ void Server::run() {
     closeListSockets();
 }
 
-std::string Server::readHTTPHead(int clientSocket) {
-    /* parsing head of HTTP request using one char buffer */
-    Request* request = new Request();
-    request->parseRequest(clientSocket);
-    return "null";
-}
-
 bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter) {
+//    Response* response1 = new Response();
+//    response1->generateResponse(clientSocket, )
     std::stringstream   response; // сюда будет записываться ответ клиенту
     // std::stringstream   response_body;
     static std::ifstream       file;
@@ -156,10 +163,12 @@ bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter
 
     // file.open("resources/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
 	int size;
+
     if (!headerFlag) {
         /* заголовок */
 		// file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
-		 file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
+		 f
+         
 //		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.fail()) {
 			perror("Error : can't open input file");
