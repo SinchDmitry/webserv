@@ -114,9 +114,6 @@ void Server::run() {
 					continue;
 				}
             } else if (_fds[i].revents == POLLIN) {
-				/* in work
-					_activeClients.push_back(new ClientSocket(_fds[i].fd));
-				*/
                 buffer = readHTTPHead(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
@@ -139,26 +136,9 @@ void Server::run() {
 
 std::string Server::readHTTPHead(int clientSocket) {
     /* parsing head of HTTP request using one char buffer */
-    char sym;
-    std::string buffer = "";
-    while (true) {
-        int byteIn = recv(clientSocket, &sym, 1, 0);
-        if (byteIn > EMPTY_BUFFER) {
-            buffer += sym;
-            if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
-                break;
-            }
-        } else if (byteIn == EMPTY_BUFFER) {
-            break;
-        } else if (byteIn == SOCKET_ERROR) {
-            perror("Error : failure reading from TCP");
-        } 
-    }
-    buffer[buffer.length()] = '\0';
-
-    // Request* request = new Request(buffer.substr(0, buffer.find(" ")));
-    // request->parseRequest(buffer);
-    return buffer;
+    Request* request = new Request();
+    request->parseRequest(clientSocket);
+    return "null";
 }
 
 bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter) {
