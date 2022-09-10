@@ -3,9 +3,11 @@
 
 # include "Request.hpp"
 # include "Response.hpp"
+# include "ListenSocket.hpp"
 
 class Response;
 class Request;
+class ListenSocket;
 
 class ClientSocket {
 	private:
@@ -13,10 +15,11 @@ class ClientSocket {
 		int 			_fd;
 		Request			_inputRequest;
 		Response		_outputResponse;
+        ListenSocket*    _server;
 
 	public:
 		/* constructors */
-		ClientSocket(int fd);
+		ClientSocket(int fd, ListenSocket* socket);
 		ClientSocket(const ClientSocket& copy)  { *this = copy; }
 		ClientSocket& operator = (const ClientSocket& op);
 		~ClientSocket() {}

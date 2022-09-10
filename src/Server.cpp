@@ -41,7 +41,13 @@ int Server::addNewClientSocket(int &nfds, int i) {
 	_fds[nfds].fd = clientSocket;
 	_fds[nfds].events = POLLIN;
 	_fds[nfds].revents = 0;
-	_activeClients.push_back(new ClientSocket(clientSocket));
+    // привязка серверного соккета к клиентскому
+    std::list<ListenSocket*>::const_iterator it = _activeServers.begin();
+    for (; it != _activeServers.end(); it++) {
+        if ((*it)->getFd() == _fds[i].fd) {
+            _activeClients.push_back(new ClientSocket(clientSocket, (*it)));
+        }
+    }
 	nfds++;
 	return 0;
 }
@@ -173,7 +179,9 @@ void    Server::createListSockets() {
         if (tmpFd != SOCKET_ERROR) {
             _fds[i].fd = tmpFd;
             _fds[i].events = POLLIN;
+            newSocketFromConfig->setFd(tmpFd);
         }
+        _activeServers.push_back(newSocketFromConfig);
     }
 }
 

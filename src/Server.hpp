@@ -33,6 +33,7 @@ class Server
         pollfd      				_fds[200];
         int         				_numOfListenSocket;
 		std::list<ClientSocket*> 	_activeClients;
+        std::list<ListenSocket*>    _activeServers;
 
 		/* functions */
         bool            findInListenSockets(int fd);

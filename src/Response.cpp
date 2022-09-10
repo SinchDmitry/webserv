@@ -29,8 +29,8 @@ bool Response::generateResponse(int clientSocket, Request request, int readCount
 
     if (!headerFlag) {
 // file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
-        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
-//        file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
+//        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
+        file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
 //		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.fail()) {
             perror("Error : can't open input file");
@@ -75,14 +75,6 @@ bool Response::generateResponse(int clientSocket, Request request, int readCount
     }
     return false;
 }
-
-//bool Response::generateResponse(int clientSocket) {
-////    std::stringstream response;
-////    static std::ifstream file;
-//    std::cout << "ok" << std::endl;
-//
-//    return false;
-//}
 
 void Response::initStatusCodes() {
     _statusCodes[100] = "Continue";
