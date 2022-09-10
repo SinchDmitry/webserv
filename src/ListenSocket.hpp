@@ -31,6 +31,7 @@ class ListenSocket {
 		const std::string&	getIP(void) const	{ return _ip; }
 		const std::string&	getName(void) const	{ return _name; }
         const int getFd(void) const             { return _fd; }
+        const std::list<LocationInfo*>& getLocations(void) const { return _locations; }
 
         void setFd(const int fd) { _fd = fd; }
 };

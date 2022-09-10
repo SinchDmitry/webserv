@@ -17,12 +17,6 @@
 # include "ListenSocket.hpp"
 # include "ClientSocket.hpp"
 
-//# define END_ERROR          1
-//# define EMPTY_BUFFER		0
-//# define SOCKET_ERROR       -1
-//# define MAX_SHORT          32767
-//# define READ_BUFFER_SIZE   10000
-
 class ListenSocket;
 class ClientSocket;
 

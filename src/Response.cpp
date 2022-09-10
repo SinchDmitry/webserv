@@ -21,13 +21,14 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
-bool Response::generateResponse(int clientSocket, Request request, int readCounter) {
+bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int readCounter) {
     std::stringstream response;
     static std::ifstream file;
     static bool headerFlag;
     int size;
 
     if (!headerFlag) {
+        std::cout << "\t\tLOCATION --- " << (*client.getServer()->getLocations().begin())->getLocation() << std::endl;
 // file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
 //        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
         file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);

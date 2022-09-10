@@ -15,9 +15,12 @@ ClientSocket& ClientSocket::operator = (const ClientSocket& op) {
 void ClientSocket::setRequest(int clientSocket) {
     Request* request = new Request();
     request->parseRequest(clientSocket);
+    _inputRequest = *request;
 }
 
 bool ClientSocket::setResponse(int clientSocket, int readCounter) {
     Response* response = new Response();
-    return response->generateResponse(clientSocket, _inputRequest, readCounter);
+    bool result = response->generateResponse(*this, clientSocket, _inputRequest, readCounter);
+    _outputResponse = response;
+    return result;
 }

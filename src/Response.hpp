@@ -13,8 +13,10 @@
 # include <sstream>
 
 # include "Request.hpp"
+# include "ClientSocket.hpp"
 
 class Request;
+class ClientSocket;
 
 class Response {
 private:
@@ -35,7 +37,7 @@ public:
     const std::map<std::string, std::string>& getBody() const { return _body; };
     const std::map<int, std::string>& getStatusCodes() const { return _statusCodes; };
 
-    bool generateResponse(int clientSocket, Request request, int readCounter);
+    bool generateResponse(ClientSocket client, int clientSocket, Request request, int readCounter);
 };
 
 
