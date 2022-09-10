@@ -75,10 +75,17 @@ void Request::parseRequest(int clientSocket) {
         _message[_message.length()] = '\0';
     }
     std::cout << "\tMessage -> " << _message << std::endl;
-    for (std::map<std::string, std::string>::iterator it = _body.begin();
-         it != _body.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
+//    for (std::map<std::string, std::string>::iterator it = _body.begin();
+//         it != _body.end(); ++it) {
+//        std::cout << it->first << ": " << it->second << std::endl;
+//    }
+    std::cout << std::endl << "Host: " << _body.find("Host")->second << std::endl;
+    if (_body.count("Referer")) {
+        std::cout << std::endl << "Referer: " << _body.find("Referer")->second << std::endl;
+    } else {
+        std::cout << "Request-URI: " << _body.find("Request-URI")->second << std::endl << std::endl;
     }
+
 }
 
 std::list<std::string> Request::split(const std::string& str, std::string myDelim)

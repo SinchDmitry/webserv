@@ -21,6 +21,25 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
+std::string getFileName(ClientSocket client, Request request) {
+    std::string file = "";
+
+    for (std::list<LocationInfo*>::const_iterator it = client.getServer()->getLocations().begin();
+            it != client.getServer()->getLocations().end(); it++) {
+        if (!request.getBody().count("Referer")) {
+            if (!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
+                for (std::list<LocationInfo*>::const_iterator itDownGrade = (*it)->getDownGradeList().begin();
+                        itDownGrade != (*it)->getDownGradeList().end(); itDownGrade++) {
+                    if (!(*itDownGrade)->getType().compare("index")) {
+                        file += (*it)->getLocation();
+                    }
+                }
+            }
+        }
+    }
+    return file;
+}
+
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int readCounter) {
     std::stringstream response;
     static std::ifstream file;
@@ -28,7 +47,8 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     int size;
 
     if (!headerFlag) {
-        std::cout << "\t\tLOCATION --- " << (*client.getServer()->getLocations().begin())->getLocation() << std::endl;
+        std::cout << "\t\t\tFileName -> " << getFileName(client, request) << std::endl;
+
 // file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
 //        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
         file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
