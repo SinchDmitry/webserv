@@ -47,8 +47,13 @@ int Server::addNewClientSocket(int &nfds, int i) {
 }
 
 void Server::closeClientSocket(int &nfds, int &i) {
-	std::cout << "Connection closed" << std::endl;
+	std::cout << "Connection closed : " << _fds[i].fd << std::endl;
 	close(_fds[i].fd);
+    for (std::list<ClientSocket *>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
+        if ((*it)->getFD() == _fds[i].fd) {
+            _activeClients.erase(it);
+        }
+    }
 	for (int j = i; j < nfds - 1; j++) {
 		_fds[j] = _fds[j + 1];
 	}
@@ -94,6 +99,23 @@ int Server::initListningSocket(ListenSocket serverInfo) {
 	return listningSocket;
 }
 
+void Server::setRequestByFd(int fd) {
+    for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
+        if ((*it)->getFD() == fd) {
+            (*it)->setRequest(fd);
+        }
+    }
+}
+
+bool Server::setResponseByFd(int fd, int readCounter) {
+    for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
+        if ((*it)->getFD() == fd) {
+            return (*it)->setResponse(fd, readCounter);
+        }
+    }
+    return false;
+}
+
 void Server::run() {
     /* заполняем струтуру в которой будем хранить информацию о состоянии установленных соединений */
     createListSockets();
@@ -106,7 +128,6 @@ void Server::run() {
         /* ожидает запрос на установку TCP-соединения от удаленного хоста. */
         static int readCounter;
         for (int i = 0; i < nfds; ++i) {
-            std::string buffer;
             if (_fds[i].revents == 0) {
                 continue;
             } else if (findInListenSockets(_fds[i].fd)) {
@@ -114,15 +135,11 @@ void Server::run() {
 					continue;
 				}
             } else if (_fds[i].revents == POLLIN) {
-				/* in work
-					_activeClients.push_back(new ClientSocket(_fds[i].fd));
-				*/
-                buffer = readHTTPHead(_fds[i].fd);
+                setRequestByFd(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
             } else if (_fds[i].revents == POLLOUT) {
-				// activeClients.
-                if (sendTestMessage(_fds[i].fd, buffer, readCounter)) {
+                if (setResponseByFd(_fds[i].fd, readCounter)) {
                     _fds[i].events = POLLIN;
                 }
                 _fds[i].revents = 0;
@@ -135,94 +152,6 @@ void Server::run() {
         }
     }
     closeListSockets();
-}
-
-std::string Server::readHTTPHead(int clientSocket) {
-    /* parsing head of HTTP request using one char buffer */
-    char sym;
-    std::string buffer = "";
-    while (true) {
-        int byteIn = recv(clientSocket, &sym, 1, 0);
-        if (byteIn > EMPTY_BUFFER) {
-            buffer += sym;
-            if (buffer.length() > 4 && buffer.substr(buffer.length() - 4) == "\r\n\r\n") {
-                break;
-            }
-        } else if (byteIn == EMPTY_BUFFER) {
-            break;
-        } else if (byteIn == SOCKET_ERROR) {
-            perror("Error : failure reading from TCP");
-        } 
-    }
-    buffer[buffer.length()] = '\0';
-
-    // Request* request = new Request(buffer.substr(0, buffer.find(" ")));
-    // request->parseRequest(buffer);
-    return buffer;
-}
-
-bool Server::sendTestMessage(int clientSocket, std::string buf, int& readCounter) {
-    std::stringstream   response; // сюда будет записываться ответ клиенту
-    // std::stringstream   response_body;
-    static std::ifstream       file;
-    static bool headerFlag;
-    /* тело ответа (HTML) */
-    // response_body << "<title>Test C++ HTTP Server</title>\n"
-    //     << "<h1>Test page</h1>\n"
-    //     << "<p>This is body of the test page...</p>\n"
-    //     << "<h2>Request headers</h2>\n"
-    //     << "<pre>" << buf << "</pre>\n" 
-    //     << "<em><small>Test C++ Http Server</small></em>\n";
-
-    // file.open("resources/videoplayback.mp4", std::ios::in | std::ios::binary | std::ios::ate);
-	int size;
-    if (!headerFlag) {
-        /* заголовок */
-		// file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
-		 file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
-//		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
-		if (file.fail()) {
-			perror("Error : can't open input file");
-			exit(1);
-		}
-		size = file.tellg();
-		std::cout << "Content size : " << size << std::endl;
-        response << "HTTP/1.1 200 OK\r\n"
-            << "Version: HTTP/1.1\r\n"
-            // << "Content-Type: video/mp4; charset=utf-8\r\n"
-            // << "Content-Type: image/png; charset=utf-8\r\n"
-             << "Content-Type: text/html; charset=utf-8\r\n"
-//            << "Content-Type: audio/mpeg; charset=utf-8\r\n"
-            << "Content-Length: " << size << "\r\n\r\n";
-        if (send(clientSocket, response.str().c_str(), response.str().length(), 0) == SOCKET_ERROR) {
-            perror("Error : send message failure");
-            exit(SOCKET_ERROR); // correct it
-        }
-        headerFlag = true;
-    }
-
-	file.seekg(readCounter);
-    /* порционная отправка ответа */
-    char buff[READ_BUFFER_SIZE];
-    file.read(buff, READ_BUFFER_SIZE);
-//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
-    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
-    readCounter += READ_BUFFER_SIZE;
-	// if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
-    //     perror("Error : send message failure");
-    //     exit(SOCKET_ERROR); // correct it
-    // }
-    // readCounter += READ_BUFFER_SIZE;
-//	std::cout << "counter pos : " << file.tellg() << std::endl;
-    if (file.eof()) {
-		std::cout << "I'M DONE" << std::endl;
-        headerFlag = false;
-		file.clear();
-        file.close();
-        readCounter = 0;
-        return true;
-    }
-    return false;
 }
 
 void    Server::createListSockets() {

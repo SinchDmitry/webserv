@@ -27,7 +27,7 @@ std::list<std::string> ConfigurationSingleton::split(const std::string& str, std
 
 std::list<std::string>	ConfigurationSingleton::fileInit() {
 	std::ifstream file;
-	file.open("/Users/aarchiba/Desktop/streamWebserv/configuration.conf", 
+	file.open("configuration.conf",
 		std::ios::in | std::ios::ate);
 	if (file.fail()) {
 		perror("Error : can't open input file");
@@ -41,12 +41,12 @@ std::list<std::string>	ConfigurationSingleton::fileInit() {
 
 	std::list<std::string> configInfo = split(buffer, "\n");
 
-	/* debug / print file
-		for (std::list<std::string>::iterator a = configInfo.begin(); a != configInfo.end(); a++) {
-			std::cout << *a << std::endl;
-		}
-		std::cout << std::endl;
-	*/
+//	debug / print file
+//		for (std::list<std::string>::iterator a = configInfo.begin(); a != configInfo.end(); a++) {
+//			std::cout << *a << std::endl;
+//		}
+//		std::cout << std::endl;
+
 	return configInfo;
 }
 

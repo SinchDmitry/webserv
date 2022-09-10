@@ -1,5 +1,31 @@
 #include "ListenSocket.hpp"
 
+//* debug function / recource printer
+void recoursePrinter(LocationInfo* locationInf) {
+    std::cout << "-==GENERAL==-" << std::endl;
+    std::cout << "type : " << locationInf->getType() << std::endl;
+    std::cout << "lctn : " << locationInf->getLocation() << std::endl;
+    std::multimap<std::string, std::string> config = locationInf->getConfigList();
+    if (!config.empty()) {
+        std::cout << "-==DATA==-" << std::endl;
+        for (std::multimap<std::string, std::string>::iterator configIter = config.begin();
+             configIter != config.end(); ++configIter) {
+            std::cout << "parameter : " << configIter->first <<
+                      " | value : " << configIter->second << std::endl;
+        }
+    }
+    std::list<LocationInfo*> location = locationInf->getDownGradeList();
+    // std::cout << "size : " << location.size() << std::endl;
+    if (!location.empty()) {
+        for (std::list<LocationInfo*>::iterator locationIter = location.begin();
+             locationIter != location.end(); ++locationIter) {
+            std::cout << "-==INCLUDE==-" << std::endl;
+            recoursePrinter(*locationIter);
+        }
+    }
+    std::cout << "-==END of " << locationInf->getType() << " ==-" << std::endl;
+}
+
 ListenSocket::ListenSocket(LocationInfo* server) 
 	// :
 	// _name(server->getConfigList().find("server_name")->second),
@@ -16,7 +42,9 @@ ListenSocket::ListenSocket(LocationInfo* server)
 	_locations = server->getDownGradeList();
 
 	/* debug / constructor printer */
-	// std::cout << *this;
+	 std::cout << *this;
+
+    recoursePrinter(server);
 }
 ListenSocket&	ListenSocket::operator = (const ListenSocket& op) {
 	if (this != &op) {

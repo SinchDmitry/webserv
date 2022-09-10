@@ -17,11 +17,11 @@
 # include "ListenSocket.hpp"
 # include "ClientSocket.hpp"
 
-# define END_ERROR          1
-# define EMPTY_BUFFER		0
-# define SOCKET_ERROR       -1
-# define MAX_SHORT          32767
-# define READ_BUFFER_SIZE   10000
+//# define END_ERROR          1
+//# define EMPTY_BUFFER		0
+//# define SOCKET_ERROR       -1
+//# define MAX_SHORT          32767
+//# define READ_BUFFER_SIZE   10000
 
 class ListenSocket;
 class ClientSocket;
@@ -35,11 +35,14 @@ class Server
 		std::list<ClientSocket*> 	_activeClients;
 
 		/* functions */
-        bool        findInListenSockets(int fd);
-		sockaddr_in setIdInfo(ListenSocket serverInfo);
-		int  		addNewClientSocket(int &nfds, int i);
-		void		closeClientSocket(int &nfds, int &i);
-		int			waitForPoll(int nfds);
+        bool            findInListenSockets(int fd);
+		sockaddr_in     setIdInfo(ListenSocket serverInfo);
+		int  		    addNewClientSocket(int &nfds, int i);
+		void		    closeClientSocket(int &nfds, int &i);
+		int			    waitForPoll(int nfds);
+
+        void            setRequestByFd(int fd);
+        bool            setResponseByFd(int fd, int readCounter);
 
     public:
         Server(){}
@@ -48,9 +51,7 @@ class Server
         int         initListningSocket(ListenSocket serverInfo);
         int         initPoll(int listningSocket);
         void        run();
-        std::string readHTTPHead(int clientSocket);
 
-        bool        sendTestMessage(int clientSocket, std::string buf, int &readCounter);
         void        createListSockets();
         void        closeListSockets();
 };

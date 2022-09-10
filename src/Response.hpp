@@ -9,6 +9,13 @@
 # include <string>
 # include <list>
 
+# include <fstream>
+# include <sstream>
+
+# include "Request.hpp"
+
+class Request;
+
 class Response {
 private:
     std::string _httpVersion;
@@ -27,6 +34,8 @@ public:
     const std::pair<int, std::string>& getStatus() const { return _status; };
     const std::map<std::string, std::string>& getBody() const { return _body; };
     const std::map<int, std::string>& getStatusCodes() const { return _statusCodes; };
+
+    bool generateResponse(int clientSocket, Request request, int readCounter);
 };
 
 

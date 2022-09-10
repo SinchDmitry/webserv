@@ -4,15 +4,16 @@
 
 #include "Request.hpp"
 
-Request::Request() {}
+Request::Request() : _message("") {}
 
-Request::Request(std::string method) : _method(method) {}
+Request::Request(std::string method) : _method(method), _message("") {}
 
 Request::Request(const Request &copy) { *this = copy; }
 
 Request &Request::operator=(const Request &src) {
     if (this != &src) {
         _method = src._method;
+        _message = src._message;
         _body = src._body;
     }
     return  *this;
@@ -24,23 +25,59 @@ void Request::bodyMapPushBack(std::string key, std::string value) {
     _body.insert(std::pair<std::string, std::string>(key, value));
 }
 
-void Request::parseRequest(std::string buffer) {
-    std::list<std::string> rawData = split(buffer, "\n");
-    std::list<std::string>::const_iterator it = ++rawData.begin();
-    if (!_method.compare("GET")) {
-        for(; it != rawData.end() && (*it).length() > 1; ++it) {
-            bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+bool Request::readToBuffer(int clientSocket, bool isHeader) {
+    char sym;
+    int byteIn = recv(clientSocket, &sym, 1, 0);
+    if (byteIn > EMPTY_BUFFER) {
+        _message += sym;
+        if (isHeader && _message.length() > 4 && _message.substr(_message.length() - 4) == "\r\n\r\n") {
+            return false;
         }
-    } else {
-        for(; it != rawData.end(); ++it) {
-//            std::list<std::string>::const_iterator
-            if (it == --rawData.end()) {
-                bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
-            } else {
-                bodyMapPushBack("Message-body", *it);
-            }
-        }
+    } else if (byteIn == EMPTY_BUFFER) {
+        return false;
+    } else if (byteIn == SOCKET_ERROR) {
+        perror("Error : failure reading from TCP");
+    }
+    return true;
+}
 
+void Request::parseRequest(int clientSocket) {
+    // посимвольное считывание шапки запроса
+    while (readToBuffer(clientSocket, true)) {}
+    _message[_message.length()] = '\0';
+
+    // сплит шапки по строкам
+    std::list<std::string> rawData = split(_message, "\n");
+
+    // сплит первой строки - метод, ссылка, версия протокола
+    std::list<std::string> firstLine = split(*(rawData.begin()), " ");
+    std::list<std::string>::const_iterator it = firstLine.begin();
+    _method = *(it++);
+    bodyMapPushBack("Request-URI", *(it++));
+    bodyMapPushBack("HTTP-Version", *it);
+
+    std::cout << "\tMethod -> " << _method << std::endl;
+    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
+    std::cout << "\tHTTP-Version -> " << _body.find("HTTP-Version")->second << std::endl;
+
+    // создаем мапу из шапки
+    it = ++rawData.begin();
+    for(; it != rawData.end() && (*it).length() > 1; ++it) {
+        bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+    }
+
+    // если не ГЕТ, то посимвольно считываем сообщение после шапки
+    _message = "";
+    if (_method.compare("GET")) {
+        for (int i = 0; i < stoi(_body.find("Content-Length")->second, nullptr, 10); i++) {
+            readToBuffer(clientSocket, false);
+        }
+        _message[_message.length()] = '\0';
+    }
+    std::cout << "\tMessage -> " << _message << std::endl;
+    for (std::map<std::string, std::string>::iterator it = _body.begin();
+         it != _body.end(); ++it) {
+        std::cout << it->first << ": " << it->second << std::endl;
     }
 }
 
