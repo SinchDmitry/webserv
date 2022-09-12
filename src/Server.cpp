@@ -113,7 +113,7 @@ void Server::setRequestByFd(int fd) {
     }
 }
 
-bool Server::setResponseByFd(int fd, int readCounter) {
+bool Server::setResponseByFd(int fd, int& readCounter) {
     for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == fd) {
             return (*it)->setResponse(fd, readCounter);

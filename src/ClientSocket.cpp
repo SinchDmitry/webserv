@@ -1,6 +1,6 @@
 #include "ClientSocket.hpp"
 
-ClientSocket::ClientSocket(int fd, ListenSocket* socket) : _fd(fd), _server(socket) {}
+ClientSocket::ClientSocket(int fd, ListenSocket* socket) : _fd(fd), _server(socket), _outputResponse(new Response()) {}
 
 ClientSocket& ClientSocket::operator = (const ClientSocket& op) {
 	if (this != &op) {
@@ -18,9 +18,9 @@ void ClientSocket::setRequest(int clientSocket) {
     _inputRequest = *request;
 }
 
-bool ClientSocket::setResponse(int clientSocket, int readCounter) {
-    Response* response = new Response();
-    bool result = response->generateResponse(*this, clientSocket, _inputRequest, readCounter);
-    _outputResponse = response;
+bool ClientSocket::setResponse(int clientSocket, int& readCounter) {
+//    Response* response = new Response();
+    bool result = _outputResponse->generateResponse(*this, clientSocket, _inputRequest, readCounter);
+//    _outputResponse = response;
     return result;
 }

@@ -89,7 +89,7 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     return "null";
 }
 
-bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int readCounter) {
+bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
     std::stringstream response;
     static std::ifstream file;
     std::string fileName;

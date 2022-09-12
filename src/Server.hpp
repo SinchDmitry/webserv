@@ -37,7 +37,7 @@ class Server
 		int			    waitForPoll(int nfds);
 
         void            setRequestByFd(int fd);
-        bool            setResponseByFd(int fd, int readCounter);
+        bool            setResponseByFd(int fd, int& readCounter);
 
     public:
         Server(){}
