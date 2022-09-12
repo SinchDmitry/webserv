@@ -11,7 +11,8 @@
 
 # include <fstream>
 # include <sstream>
-# include <regex>
+# include <ctime>
+# include <sys/stat.h>
 
 # include "Request.hpp"
 # include "ClientSocket.hpp"
@@ -25,11 +26,14 @@ private:
     std::pair<int, std::string> _status;
     std::map<std::string, std::string> _body;
     std::map<int, std::string> _statusCodes;
+    std::map<std::string, std::string> _contentTypes;
     void initStatusCodes();
+    void initContentTypes();
 
     std::string replace(std::string src, std::string s1, std::string s2);
     std::string UriDecode(const std::string & sSrc);
     std::string getFileName(ClientSocket client, Request request);
+    void bodyMapPushBack(std::string key, std::string value);
 
 public:
     Response();
