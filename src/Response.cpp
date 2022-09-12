@@ -185,6 +185,7 @@ void Response::initContentTypes() {
     _contentTypes["htm"] = "text/html";
     _contentTypes["pdf"] = "application/pdf";
     _contentTypes["mp3"] = "audio/mpeg";
+    _contentTypes["mp4"] = "video/mp4";
 }
 
 void Response::initStatusCodes() {
