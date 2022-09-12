@@ -67,7 +67,7 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 	}
 	while (true) {
 		++(stringParserIter);
-		infoString = split(*stringParserIter, " \t\r\v\n\f");
+		infoString = split(*stringParserIter, " \t\r\v\n\f;");
 		if (*infoString.begin() == "#") {
 			continue;
 		}

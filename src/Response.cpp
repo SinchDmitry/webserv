@@ -21,20 +21,65 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
-std::string getFileName(ClientSocket client, Request request) {
+std::string Response::replace(std::string src, std::string s1, std::string s2) {
+    std::string dest = "";
+    size_t index;
+
+    if (s1 == s2) {
+        return src;
+    }
+
+    index = src.find(s1);
+
+    while (index != std::string::npos) {
+        dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
+        src = dest;
+        index = src.find(s1);
+    }
+
+    return dest;
+}
+
+std::string Response::UriDecode(const std::string & sSrc) {
+    std::map<std::string, std::string> uriSymbs;
+    uriSymbs["%20"] = " ";
+    uriSymbs["%22"] = "\"";
+    uriSymbs["%25"] = "%";
+    uriSymbs["%2D"] = "-";
+    uriSymbs["%2E"] = ".";
+    uriSymbs["%3C"] = "<";
+    uriSymbs["%3E"] = ">";
+    uriSymbs["%5C"] = "\\";
+    uriSymbs["%5E"] = "^";
+    uriSymbs["%5F"] = "_";
+    uriSymbs["%60"] = "`";
+    uriSymbs["%7B"] = "{";
+    uriSymbs["%7C"] = "|";
+    uriSymbs["%7D"] = "}";
+    uriSymbs["%7E"] = "~";
+
+    std::size_t found = sSrc.find("%");
+    std::string sResult = replace(sSrc, sSrc.substr(found, 3),
+                                  uriSymbs.find(sSrc.substr(found, 3))->second);
+    return sResult;
+}
+
+std::string Response::getFileName(ClientSocket client, Request request) {
     std::string file = "";
 
     for (std::list<LocationInfo*>::const_iterator it = client.getServer()->getLocations().begin();
             it != client.getServer()->getLocations().end(); it++) {
         if (!request.getBody().count("Referer")) {
             if (!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
-                for (std::list<LocationInfo*>::const_iterator itDownGrade = (*it)->getDownGradeList().begin();
-                        itDownGrade != (*it)->getDownGradeList().end(); itDownGrade++) {
-                    if (!(*itDownGrade)->getType().compare("index")) {
-                        file += (*it)->getLocation();
-                    }
+                if ((*it)->getConfigList().count("index")) {
+                    return (*it)->getConfigList().find("index")->second;
+                } else {
+                    return "index.html";
                 }
             }
+        } else {
+            file = request.getBody().find("Request-URI")->second;
+            return UriDecode(file.substr(1, file.length()));
         }
     }
     return file;
@@ -43,15 +88,17 @@ std::string getFileName(ClientSocket client, Request request) {
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int readCounter) {
     std::stringstream response;
     static std::ifstream file;
+    std::string fileName;
     static bool headerFlag;
     int size;
 
     if (!headerFlag) {
-        std::cout << "\t\t\tFileName -> " << getFileName(client, request) << std::endl;
+        fileName = getFileName(client, request);
+        std::cout << "\t\t\tFileName -> " << fileName << std::endl;
 
 // file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
 //        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
-        file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
+        file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
 //		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.fail()) {
             perror("Error : can't open input file");

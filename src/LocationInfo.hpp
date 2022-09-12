@@ -33,4 +33,36 @@ class LocationInfo {
 		const std::multimap<std::string, std::string>& getConfigList() const 	{ return _config; };
 };
 
+static std::ostream& operator << (std::ostream& os, const std::multimap<std::string, std::string>& src) {
+    if (!src.empty()) {
+        for (std::multimap<std::string, std::string>::const_iterator it = src.begin(); it != src.end(); ++it) {
+            os << "\t" << it->first << " : " << it->second << std::endl;
+        }
+    } else {
+        os << "\tEmpty map" << std::endl;
+    }
+    return os;
+}
+
+static std::ostream& operator << (std::ostream& os, const std::list<LocationInfo*>& src) {
+    if (!src.empty()) {
+        for (std::list<LocationInfo*>::const_iterator it = src.begin(); it != src.end(); ++it) {
+            os << "\t" << (*it) << std::endl;
+        }
+    } else {
+        os << "\tEmpty list" << std::endl;
+    }
+    return os;
+}
+
+static std::ostream& operator << (std::ostream& os, const LocationInfo& src) {
+    os	<< "================== start ==================" << std::endl
+          << "Type : " << src.getType() << std::endl
+          << "Location : " << src.getLocation() << std::endl
+          << "Config : " << src.getConfigList() << std::endl
+          << "List of locations inside : " << src.getLocation() << std::endl
+          << "=================== end ===================" << std::endl;
+    return os;
+}
+
 #endif
