@@ -105,7 +105,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", std::localtime(&tt))) {
             bodyMapPushBack("Date", resDate);
         }
-        std::cout << "\t\t\tFileName -> " << fileName << std::endl;
+//        std::cout << "\t\t\tFileName -> " << fileName << std::endl;
 
         struct stat attrib;
         stat(fileName.c_str(), &attrib);
@@ -124,14 +124,10 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         bodyMapPushBack("Content-Length", std::to_string(file.tellg()));
         bodyMapPushBack("Version", _httpVersion);
         bodyMapPushBack("Connection", "Closed");
-        bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.find(".") + 1))->second);
-//        std::cout << "\t\t\tContent-Type -> " << fileName.substr(fileName.find(".") + 1) << std::endl;
-        std::cout << "\t\t\tContent-Type -> " << _contentTypes.find(fileName.substr(fileName.find(".") + 1))->second << std::endl;
-        response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n"
-                 // << "Content-Type: video/mp4; charset=utf-8\r\n"
-//                  << "Content-Type: image/png; charset=utf-8\r\n"
-                 << "Content-Type: text/html; charset=utf-8\r\n";
-                 //            << "Content-Type: audio/mpeg; charset=utf-8\r\n"
+        bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
+//        std::cout << "\t\t\tContent-Type -> " << _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second << "\t" << fileName.substr(fileName.rfind(".") + 1) << std::endl;
+        response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
+//                 << "Content-Type: text/html; charset=utf-8\r\n";
         for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
             response << it->first << ": " << it->second << "\r\n";
         }
@@ -188,6 +184,7 @@ void Response::initContentTypes() {
     _contentTypes["xml"] = "text/xml";
     _contentTypes["htm"] = "text/html";
     _contentTypes["pdf"] = "application/pdf";
+    _contentTypes["mp3"] = "audio/mpeg";
 }
 
 void Response::initStatusCodes() {
