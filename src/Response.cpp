@@ -143,14 +143,12 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 
     file.seekg(readCounter);
     /* порционная отправка ответа */
-    // char buff[READ_BUFFER_SIZE];
 	std::string buff(READ_BUFFER_SIZE, '0');
     file.read(&buff[0], READ_BUFFER_SIZE);
 //	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
-//    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
-//    readCounter += READ_BUFFER_SIZE;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
-         perror("Error : send message failure");
+        // perror("Error : send message failure");
+		return false;
         //  exit(SOCKET_ERROR); // correct it
     }
     readCounter += READ_BUFFER_SIZE;
@@ -164,20 +162,6 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         return true;
     }
     return false;
-		// std::cout << length << std::endl;
-		// std::string buff(length, ' ');
-		// std::cout << length << std::endl;
-		// file.read(&buff[0], length);
-		// if (send(clientSocket, (char *)buff.c_str(), length, MSG_NOSIGNAL) == SOCKET_ERROR) {
-		// 	perror("Error : send message failure");
-		// 	//  exit(SOCKET_ERROR); // correct it
-		// }
-		// std::cout << length << std::endl;
-		// headerFlag = false;
-        // file.clear();
-        // file.close();
-        // readCounter = 0;
-		// return true;
 }
 
 void Response::bodyMapPushBack(std::string key, std::string value) {

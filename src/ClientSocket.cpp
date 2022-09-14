@@ -1,6 +1,10 @@
 #include "ClientSocket.hpp"
 
-ClientSocket::ClientSocket(int fd, ListenSocket* socket) : _fd(fd), _server(socket), _outputResponse(new Response()) {}
+ClientSocket::ClientSocket(int fd, ListenSocket* socket) : 
+	_fd(fd), 
+	_server(socket), 
+	_outputResponse(new Response()), 
+	_readCounter(0) {}
 
 ClientSocket& ClientSocket::operator = (const ClientSocket& op) {
 	if (this != &op) {
@@ -18,9 +22,8 @@ void ClientSocket::setRequest(int clientSocket) {
     _inputRequest = *request;
 }
 
-bool ClientSocket::setResponse(int clientSocket, int& readCounter) {
-//    Response* response = new Response();
-    bool result = _outputResponse->generateResponse(*this, clientSocket, _inputRequest, readCounter);
-//    _outputResponse = response;
-    return result;
+bool ClientSocket::setResponse(int clientSocket) {
+	std::cout << "fd : " << this->getFD() << " | counter : " << this->getCounter() << std::endl;
+    return _outputResponse->generateResponse(*this, clientSocket, _inputRequest, _readCounter);
+;
 }

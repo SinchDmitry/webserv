@@ -1,0 +1,30 @@
+<html>
+	<head>
+		<title>Page with form</title>
+	</head>
+	<body>
+		<h1>Тестовый сайт</h1>
+		<p>&nbsp;</p>
+		
+		<h2>Страница с формой</h1>
+		<p>Умеет отправлять какие-то значения и загружать файлы</p>
+	
+		<form action="test.py" method="post">
+			Введите имя: 
+			<input type="text" name="name">
+			И фамилию: <input type="text" name="surname">
+			<input type="submit" value="Send Request">
+		</form>
+		<br><br>
+		<form action="formpage.html" method="post" enctype="multipart/form-data">
+			<input type="file" name="f">
+			<input type="submit" value="Send Request">
+		</form>
+		<form action="cookie.py" method="post">
+			<input type="submit" value="">Cookie</input>
+		</form>
+		<form action="hello.sh" method="post">
+			<input type="submit" value="">Hello :3 </input>
+		</form>
+	</body>
+</html>
