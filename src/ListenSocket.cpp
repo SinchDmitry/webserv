@@ -44,7 +44,7 @@ ListenSocket::ListenSocket(LocationInfo* server)
 	/* debug / constructor printer */
 	 std::cout << *this;
 
-    recoursePrinter(server);
+//    recoursePrinter(server);
 }
 ListenSocket&	ListenSocket::operator = (const ListenSocket& op) {
 	if (this != &op) {
