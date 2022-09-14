@@ -94,6 +94,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     static std::ifstream file;
     std::string fileName;
     static bool headerFlag;
+	static int length;
 
     if (!headerFlag) {
         fileName = getFileName(client, request);
@@ -115,12 +116,14 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 
         file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.fail()) {
+			std::cout << fileName << std::endl;
             perror("Error : can't open input file");
             _status = std::make_pair(404, _statusCodes.find(404)->second);
 //            exit(1);
         } else {
             _status = std::make_pair(200, _statusCodes.find(200)->second);
         }
+		length = file.tellg();
         bodyMapPushBack("Content-Length", std::to_string(file.tellg()));
         bodyMapPushBack("Version", _httpVersion);
         bodyMapPushBack("Connection", "Closed");
@@ -140,16 +143,17 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 
     file.seekg(readCounter);
     /* порционная отправка ответа */
-    char buff[READ_BUFFER_SIZE];
-    file.read(buff, READ_BUFFER_SIZE);
+    // char buff[READ_BUFFER_SIZE];
+	std::string buff(READ_BUFFER_SIZE, '0');
+    file.read(&buff[0], READ_BUFFER_SIZE);
 //	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
 //    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
 //    readCounter += READ_BUFFER_SIZE;
-     if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
+    if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
          perror("Error : send message failure");
          exit(SOCKET_ERROR); // correct it
-     }
-     readCounter += READ_BUFFER_SIZE;
+    }
+    readCounter += READ_BUFFER_SIZE;
 //	std::cout << "counter pos : " << file.tellg() << std::endl;
     if (file.eof()) {
         std::cout << "I'M DONE" << std::endl;
@@ -160,6 +164,20 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         return true;
     }
     return false;
+		// std::cout << length << std::endl;
+		// std::string buff(length, ' ');
+		// std::cout << length << std::endl;
+		// file.read(&buff[0], length);
+		// if (send(clientSocket, (char *)buff.c_str(), length, MSG_NOSIGNAL) == SOCKET_ERROR) {
+		// 	perror("Error : send message failure");
+		// 	//  exit(SOCKET_ERROR); // correct it
+		// }
+		// std::cout << length << std::endl;
+		// headerFlag = false;
+        // file.clear();
+        // file.close();
+        // readCounter = 0;
+		// return true;
 }
 
 void Response::bodyMapPushBack(std::string key, std::string value) {
@@ -179,7 +197,6 @@ void Response::initContentTypes() {
     _contentTypes["csv"] = "text/csv";
     _contentTypes["html"] = "text/html";
     _contentTypes["htm"] = "text/html";
-    // _contentTypes["php"] = "text/php";
     _contentTypes["xml"] = "text/xml";
     _contentTypes["htm"] = "text/html";
     _contentTypes["pdf"] = "application/pdf";

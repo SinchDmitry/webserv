@@ -87,6 +87,7 @@ int Server::initListningSocket(ListenSocket serverInfo) {
 	}	
 	/* фикс проблемы с "повисшим" bind */
 	int enable = 1;
+	// setsockopt(listningSocket, SOL_SOCKET, SO_NOSIGPIPE,  &enable, sizeof(enable));
 	if (setsockopt(listningSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
 	    return SOCKET_ERROR;
 	}	

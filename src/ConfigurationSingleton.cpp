@@ -68,7 +68,7 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 	while (true) {
 		++(stringParserIter);
 		infoString = split(*stringParserIter, " \t\r\v\n\f;");
-		if (*infoString.begin() == "#") {
+		if (*infoString.begin() == "#" || (*infoString.begin()).empty()) {
 			// std::cout << "here" << std::endl;
 			continue;
 		}
