@@ -132,7 +132,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
             response << it->first << ": " << it->second << "\r\n";
         }
         response << "\r\n";
-        if (send(clientSocket, response.str().c_str(), response.str().length(), 0) == SOCKET_ERROR) {
+        if (send(clientSocket, response.str().c_str(), response.str().length(), MSG_NOSIGNAL) == SOCKET_ERROR) {
             perror("Error : send message failure");
             exit(SOCKET_ERROR); // correct it
         }
