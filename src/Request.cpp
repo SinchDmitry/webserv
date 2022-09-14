@@ -53,11 +53,11 @@ void Request::parseRequest(int clientSocket) {
     std::list<std::string> firstLine = split(*(rawData.begin()), " ");
     std::list<std::string>::const_iterator it = firstLine.begin();
     _method = *(it++);
-    bodyMapPushBack("Request-URI-first-line", *(it++));
+    bodyMapPushBack("Request-URI", *(it++));
     bodyMapPushBack("HTTP-Version", *it);
 
     std::cout << "\tMethod -> " << _method << std::endl;
-    std::cout << "\tRequest-URI-first-line -> " << _body.find("Request-URI-first-line")->second << std::endl;
+    std::cout << "\tRequest-URI-first-line -> " << _body.find("Request-URI")->second << std::endl;
     std::cout << "\tHTTP-Version -> " << _body.find("HTTP-Version")->second << std::endl;
 
     // создаем мапу из шапки
