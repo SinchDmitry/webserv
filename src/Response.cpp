@@ -151,7 +151,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 //    readCounter += READ_BUFFER_SIZE;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
          perror("Error : send message failure");
-         exit(SOCKET_ERROR); // correct it
+        //  exit(SOCKET_ERROR); // correct it
     }
     readCounter += READ_BUFFER_SIZE;
 //	std::cout << "counter pos : " << file.tellg() << std::endl;
