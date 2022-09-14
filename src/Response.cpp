@@ -127,7 +127,6 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
 //        std::cout << "\t\t\tContent-Type -> " << _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second << "\t" << fileName.substr(fileName.rfind(".") + 1) << std::endl;
         response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
-//                 << "Content-Type: text/html; charset=utf-8\r\n";
         for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
             response << it->first << ": " << it->second << "\r\n";
         }
@@ -144,13 +143,13 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     char buff[READ_BUFFER_SIZE];
     file.read(buff, READ_BUFFER_SIZE);
 //	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
-    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
-    readCounter += READ_BUFFER_SIZE;
-    // if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
-    //     perror("Error : send message failure");
-    //     exit(SOCKET_ERROR); // correct it
-    // }
-    // readCounter += READ_BUFFER_SIZE;
+//    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
+//    readCounter += READ_BUFFER_SIZE;
+     if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
+         perror("Error : send message failure");
+         exit(SOCKET_ERROR); // correct it
+     }
+     readCounter += READ_BUFFER_SIZE;
 //	std::cout << "counter pos : " << file.tellg() << std::endl;
     if (file.eof()) {
         std::cout << "I'M DONE" << std::endl;
