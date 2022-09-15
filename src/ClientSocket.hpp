@@ -21,9 +21,9 @@ class ClientSocket {
 	public:
 		/* constructors */
 		ClientSocket(int fd, ListenSocket* socket);
-		ClientSocket(const ClientSocket& copy)  { *this = copy; }
+		ClientSocket(const ClientSocket& copy)  { *this = copy; };
 		ClientSocket& operator = (const ClientSocket& op);
-		~ClientSocket() {}
+		~ClientSocket();
 
 		/* public functions */
         void setRequest(int clientSocket);

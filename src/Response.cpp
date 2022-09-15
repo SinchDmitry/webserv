@@ -63,10 +63,10 @@ std::string Response::UriDecode(const std::string & sSrc) {
     if (found != std::string::npos) {
         std::string sResult = replace(sSrc, sSrc.substr(found, 3),
                                       uriSymbs.find(sSrc.substr(found, 3))->second);
-        std::cout << "\t\tFilename --- " << sResult << std::endl;
+//        std::cout << "\t\tFilename --- " << sResult << std::endl;
         return sResult;
     } else {
-        std::cout << "\t\tFilename --- " << sSrc << std::endl;
+//        std::cout << "\t\tFilename --- " << sSrc << std::endl;
         return sSrc;
     }
 }
@@ -94,33 +94,34 @@ std::string Response::UriDecode(const std::string & sSrc) {
 std::string Response::getFileName(ClientSocket client, Request request) {
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
     std::string root;
-    if (!request.getBody().count("Referer")) {
-        root = request.getBody().find("Request-URI")->second;
+    std::string requestURI = request.getBody().find("Request-URI")->second;
+//    std::cout <<
+    if (requestURI.rfind("/") == requestURI.length() - 1) { // last "/" => directory
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-            if(!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
+            std::cout << (*it)->getLocation() << " == "
+                << requestURI.substr(0, requestURI.length() - 1) << " -> "
+                << (*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1)) << std::endl;
+            if((!(*it)->getLocation().compare(requestURI) && !requestURI.compare("/"))
+                || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
                 if ((*it)->getConfigList().count("index")) {
-                    std::cout << "INDEX FOUND" << std::endl;
-                    _autoindex = false;
-                    return UriDecode("." + root + (*it)->getConfigList().find("index")->second);
+                    std::cout << "INDEX" << std::endl;
+                    _autoindex = false; // если есть поле index в локации, то пусть к файлу = ./<root>/<index>
+                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
                 } else {
+                    std::cout << "NOT INDEX" << std::endl;
                     _autoindex = true;
                     return "tmp.html";
                 }
             }
         }
-    } else {
+    } else { // файл
         std::string referer = request.getBody().find("Referer")->second;
         std::string host = request.getBody().find("Host")->second;
         root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
         _autoindex = false;
-        std::cout << root << std::endl
-                << root.length() << std::endl
-                << root.substr(root.length() - 2) << std::endl;
         if (!root.substr(root.length() - 2, root.length() - 1).compare("/")) {
-            std::cout << "FILE" << std::endl;
             return UriDecode("." + root.substr(0, root.length() - 2) + request.getBody().find("Request-URI")->second);
         } else {
-            std::cout << "DIR" << std::endl;
             return UriDecode("." + root + request.getBody().find("Request-URI")->second);
         }
     }
@@ -135,8 +136,9 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     static bool headerFlag;
 	static int length;
 
+    fileName = getFileName(client, request);
     if (!headerFlag) {
-        fileName = getFileName(client, request);
+        std::cout << "Response Header" << std::endl;
         std::time_t tt;
         time (&tt);
         char resDate[100];
@@ -145,7 +147,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", std::localtime(&tt))) {
             bodyMapPushBack("Date", resDate);
         }
-//        std::cout << "\t\t\tFileName -> " << fileName << std::endl;
+        std::cout << "\t\tFileName -> " << fileName << std::endl;
 
         struct stat attrib;
         stat(fileName.c_str(), &attrib);
@@ -167,7 +169,6 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         bodyMapPushBack("Version", _httpVersion);
         bodyMapPushBack("Connection", "Closed");
         bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
-//        std::cout << "\t\t\tContent-Type -> " << _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second << "\t" << fileName.substr(fileName.rfind(".") + 1) << std::endl;
         response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
         for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
             response << it->first << ": " << it->second << "\r\n";
@@ -186,6 +187,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     file.read(&buff[0], READ_BUFFER_SIZE);
 //	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
+        std::cout << "Error " << fileName << std::endl;
         // perror("Error : send message failure");
 		return false;
         //  exit(SOCKET_ERROR); // correct it
