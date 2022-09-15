@@ -1,7 +1,3 @@
-//
-// Created by Attack Cristina on 08.09.2022.
-//
-
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 

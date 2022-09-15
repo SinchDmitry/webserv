@@ -1,7 +1,3 @@
-//
-// Created by Attack Cristina on 08.09.2022.
-//
-
 #include "Response.hpp"
 #include <unistd.h>
 
@@ -64,7 +60,7 @@ std::string Response::UriDecode(const std::string & sSrc) {
     if (found != std::string::npos) {
         std::string sResult = replace(sSrc, sSrc.substr(found, 3),
                                       uriSymbs.find(sSrc.substr(found, 3))->second);
-//        std::cout << "\t\tFilename --- " << sResult << std::endl;
+    //    std::cout << "\t\tFilename --- " << sResult << std::endl;
         return sResult;
     } else {
 //        std::cout << "\t\tFilename --- " << sSrc << std::endl;
@@ -104,7 +100,8 @@ std::string Response::getFileName(ClientSocket client, Request request) {
                 if ((*it)->getConfigList().count("index")) {
 //                    std::cout << "INDEX" << std::endl;
                     _autoindex = false; // если есть поле index в локации, то пусть к файлу = ./<root>/<index>
-//                    std::cout << "CURRENT ROOT " << (*it)->getConfigList().find("root")->second << std::endl;
+                //    std::cout << "CURRENT ROOT " << (*it)->getConfigList().find("root")->second << std::endl;
+				
                     return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
                 } else {
 //                    std::cout << "NOT INDEX" << std::endl;
@@ -117,19 +114,23 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 //        std::cout << "HERE" << std::endl;
         std::string referer = request.getBody().find("Referer")->second;
         std::string host = request.getBody().find("Host")->second;
-        int found = referer.find_last_of(host.substr(0, host.length() - 1)) + 1;
-        root = referer.substr(found, referer.length() - found - 1);
-//        std::cout << "ROOT -> " << root << std::endl;
-//        std::cout << "HOST -> " << host.substr(0, host.length() - 1) << std::endl;
+		host = host.substr(0, host.length() - 1);
+        int found = referer.find(host) + host.length();
+        root = referer.substr(found, referer.length() - 2 - found);
+		if (root.empty()) { root = "/"; }
+    //    std::cout << "ROOT -> " << root << std::endl;
+    //    std::cout << "HOST -> " << host << std::endl;
+	//    std::cout << "REF -> " << referer << std::endl;
 //        std::cout << "LEN -> " << host.substr(0, host.length() - 1).length() << std::endl;
 //        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
 //        root[root.length()] = '\0';
 //        std::cout << referer << std::endl
 //                << host << std::endl
 //                << root << std::endl;
-//        std::cout << "CURRENT ROOT " << root << std::endl;
+    //    std::cout << "CURRENT ROOT " << root << " | LENGTH : " << root.length() << std::endl;
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             std::string tmpRoot = (*it)->getLocation();
+       		// std::cout << "TMP ROOT " << tmpRoot << " | LENGTH : " << tmpRoot.length() << std::endl;
 //            std::cout << tmpRoot.length() << std::endl
 //                << root.length() << std::endl
 //                << (tmpRoot.compare(root)) << std::endl << std::endl;
@@ -140,8 +141,20 @@ std::string Response::getFileName(ClientSocket client, Request request) {
                     std::cout << "CURRENT ROOT " << rootFromMap << std::endl;
                     return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
                 } else {
+
+
+					/* !!! 👀👀 HERE WRONG WAY TO DOC & LIST AND CORRECT FOR HOME, WTF  👀👀 !!! */
+
+
+					// std::cout << "Debag root " << "./" << rootFromMap.substr(0, rootFromMap.length() - 1) << " " << request.getBody().find("Request-URI")->second << rootFromMap << std::endl;
+                    // return UriDecode("./" + request.getBody().find("Request-URI")->second);
                     return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
-                }
+
+
+					/* !!! 👀👀 HERE WRONG WAY TO DOC & LIST AND CORRECT FOR HOME, WTF  👀👀 !!! */
+
+
+				}
             }
         }
 
@@ -215,8 +228,8 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     file.read(&buff[0], READ_BUFFER_SIZE);
 	//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
-        std::cout << "Error " << fileName << std::endl;
-        // perror("Error : send message failure");
+        // std::cout << "Error " << fileName << std::endl;
+        perror("Error : send message failure");
 		return false;
         //  exit(SOCKET_ERROR); // correct it
     }
