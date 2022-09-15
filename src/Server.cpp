@@ -165,11 +165,9 @@ void Server::run() {
                 continue;
             } else if (findInListenSockets(_fds[i].fd)) {
 				if (addNewClientSocket(nfds, i)) {
-                    std::cout << "Add new client socket" << std::endl;
 					continue;
 				}
             } else if (_fds[i].revents == POLLIN) {
-                std::cout << "Set Request" << std::endl;
                 setRequestByFd(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
