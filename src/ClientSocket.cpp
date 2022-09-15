@@ -23,7 +23,6 @@ void ClientSocket::setRequest(int clientSocket) {
 }
 
 bool ClientSocket::setResponse(int clientSocket) {
-	std::cout << "fd : " << this->getFD() << " | counter : " << this->getCounter() << std::endl;
+//	std::cout << "fd : " << this->getFD() << " | counter : " << this->getCounter() << std::endl;
     return _outputResponse->generateResponse(*this, clientSocket, _inputRequest, _readCounter);
-;
 }

@@ -4,7 +4,7 @@
 
 #include "Response.hpp"
 
-Response::Response() : _httpVersion("HTTP/1.1") {
+Response::Response() : _httpVersion("HTTP/1.1"), _autoindex(false) {
     initStatusCodes();
     initContentTypes();
 }
@@ -63,26 +63,65 @@ std::string Response::UriDecode(const std::string & sSrc) {
     if (found != std::string::npos) {
         std::string sResult = replace(sSrc, sSrc.substr(found, 3),
                                       uriSymbs.find(sSrc.substr(found, 3))->second);
+        std::cout << "\t\tFilename --- " << sResult << std::endl;
         return sResult;
     } else {
+        std::cout << "\t\tFilename --- " << sSrc << std::endl;
         return sSrc;
     }
 }
 
+//std::string Response::getFileName(ClientSocket client, Request request) {
+//    for (std::list<LocationInfo*>::const_iterator it = client.getServer()->getLocations().begin();
+//            it != client.getServer()->getLocations().end(); it++) {
+//        if (!request.getBody().count("Referer")) {
+//            if (!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
+//                if ((*it)->getConfigList().count("index")) {
+//                    return (*it)->getConfigList().find("index")->second;
+//                } else {
+//                    return "index.html";
+//                }
+//            }
+//        } else {
+//            std::string file = request.getBody().find("Request-URI")->second;
+//            return UriDecode(file.substr(1, file.length()));
+//        }
+//    }
+//
+//    return "null";
+//}
+
 std::string Response::getFileName(ClientSocket client, Request request) {
-    for (std::list<LocationInfo*>::const_iterator it = client.getServer()->getLocations().begin();
-            it != client.getServer()->getLocations().end(); it++) {
-        if (!request.getBody().count("Referer")) {
-            if (!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
+    std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
+    std::string root;
+    if (!request.getBody().count("Referer")) {
+        root = request.getBody().find("Request-URI")->second;
+        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+            if(!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
                 if ((*it)->getConfigList().count("index")) {
-                    return (*it)->getConfigList().find("index")->second;
+                    std::cout << "INDEX FOUND" << std::endl;
+                    _autoindex = false;
+                    return UriDecode("." + root + (*it)->getConfigList().find("index")->second);
                 } else {
-                    return "index.html";
+                    _autoindex = true;
+                    return "tmp.html";
                 }
             }
+        }
+    } else {
+        std::string referer = request.getBody().find("Referer")->second;
+        std::string host = request.getBody().find("Host")->second;
+        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
+        _autoindex = false;
+        std::cout << root << std::endl
+                << root.length() << std::endl
+                << root.substr(root.length() - 2) << std::endl;
+        if (!root.substr(root.length() - 2, root.length() - 1).compare("/")) {
+            std::cout << "FILE" << std::endl;
+            return UriDecode("." + root.substr(0, root.length() - 2) + request.getBody().find("Request-URI")->second);
         } else {
-            std::string file = request.getBody().find("Request-URI")->second;
-            return UriDecode(file.substr(1, file.length()));
+            std::cout << "DIR" << std::endl;
+            return UriDecode("." + root + request.getBody().find("Request-URI")->second);
         }
     }
 
@@ -102,7 +141,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         time (&tt);
         char resDate[100];
 
-        bodyMapPushBack("Server", "lolkekserver");
+        bodyMapPushBack("Server", client.getServer()->getName());
         if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", std::localtime(&tt))) {
             bodyMapPushBack("Date", resDate);
         }

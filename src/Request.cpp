@@ -57,7 +57,7 @@ void Request::parseRequest(int clientSocket) {
     bodyMapPushBack("HTTP-Version", *it);
 
     std::cout << "\tMethod -> " << _method << std::endl;
-    std::cout << "\tRequest-URI-first-line -> " << _body.find("Request-URI")->second << std::endl;
+    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
     std::cout << "\tHTTP-Version -> " << _body.find("HTTP-Version")->second << std::endl;
 
     // создаем мапу из шапки
@@ -80,11 +80,6 @@ void Request::parseRequest(int clientSocket) {
 //        std::cout << it->first << ": " << it->second << std::endl;
 //    }
     std::cout << std::endl << "Host: " << _body.find("Host")->second << std::endl;
-    if (_body.count("Referer")) {
-        std::cout << std::endl << "Referer: " << _body.find("Referer")->second << std::endl;
-    } else {
-        std::cout << "Request-URI: " << _body.find("Request-URI")->second << std::endl << std::endl;
-    }
 
 }
 

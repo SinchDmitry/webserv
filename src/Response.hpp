@@ -22,11 +22,12 @@ class ClientSocket;
 
 class Response {
 private:
-    std::string _httpVersion;
-    std::pair<int, std::string> _status;
-    std::map<std::string, std::string> _body;
-    std::map<int, std::string> _statusCodes;
-    std::map<std::string, std::string> _contentTypes;
+    std::string                         _httpVersion;
+    bool                                _autoindex;
+    std::pair<int, std::string>         _status;
+    std::map<std::string, std::string>  _body;
+    std::map<int, std::string>          _statusCodes;
+    std::map<std::string, std::string>  _contentTypes;
     void initStatusCodes();
     void initContentTypes();
 
