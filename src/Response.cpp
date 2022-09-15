@@ -95,35 +95,61 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
     std::string root;
     std::string requestURI = request.getBody().find("Request-URI")->second;
-//    std::cout <<
-    if (requestURI.rfind("/") == requestURI.length() - 1) { // last "/" => directory
+    if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
+        || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-            std::cout << (*it)->getLocation() << " == "
-                << requestURI.substr(0, requestURI.length() - 1) << " -> "
-                << (*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1)) << std::endl;
-            if((!(*it)->getLocation().compare(requestURI) && !requestURI.compare("/"))
+            if(!(*it)->getLocation().compare(requestURI)
                 || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
                 if ((*it)->getConfigList().count("index")) {
-                    std::cout << "INDEX" << std::endl;
+//                    std::cout << "INDEX" << std::endl;
                     _autoindex = false; // если есть поле index в локации, то пусть к файлу = ./<root>/<index>
+//                    std::cout << "CURRENT ROOT " << (*it)->getConfigList().find("root")->second << std::endl;
                     return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
                 } else {
-                    std::cout << "NOT INDEX" << std::endl;
+//                    std::cout << "NOT INDEX" << std::endl;
                     _autoindex = true;
                     return "tmp.html";
                 }
             }
         }
     } else { // файл
+//        std::cout << "HERE" << std::endl;
         std::string referer = request.getBody().find("Referer")->second;
         std::string host = request.getBody().find("Host")->second;
-        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
-        _autoindex = false;
-        if (!root.substr(root.length() - 2, root.length() - 1).compare("/")) {
-            return UriDecode("." + root.substr(0, root.length() - 2) + request.getBody().find("Request-URI")->second);
-        } else {
-            return UriDecode("." + root + request.getBody().find("Request-URI")->second);
+        int found = referer.find_last_of(host.substr(0, host.length() - 1)) + 1;
+        root = referer.substr(found, referer.length() - found - 1);
+//        std::cout << "ROOT -> " << root << std::endl;
+//        std::cout << "HOST -> " << host.substr(0, host.length() - 1) << std::endl;
+//        std::cout << "LEN -> " << host.substr(0, host.length() - 1).length() << std::endl;
+//        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
+//        root[root.length()] = '\0';
+//        std::cout << referer << std::endl
+//                << host << std::endl
+//                << root << std::endl;
+//        std::cout << "CURRENT ROOT " << root << std::endl;
+        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+            std::string tmpRoot = (*it)->getLocation();
+//            std::cout << tmpRoot.length() << std::endl
+//                << root.length() << std::endl
+//                << (tmpRoot.compare(root)) << std::endl << std::endl;
+            if(!tmpRoot.compare(root)) {
+//               || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
+                if (root.rfind("/") == root.length()) {
+                    std::cout << "CURRENT ROOT " << (*it)->getConfigList().find("root")->second << std::endl;
+                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + request.getBody().find("Request-URI")->second);
+                } else {
+                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + request.getBody().find("Request-URI")->second);
+                }
+            }
         }
+
+        _autoindex = false;
+//        if (!root.substr(root.length() - 2, root.length() - 1).compare("/")) {
+////            return UriDecode("." + root.substr(0, root.length() - 2) + request.getBody().find("Request-URI")->second);
+//            return UriDecode("./" + root + request.getBody().find("Request-URI")->second);
+//        } else {
+//            return UriDecode("./" + root + request.getBody().find("Request-URI")->second);
+//        }
     }
 
     return "null";
