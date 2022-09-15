@@ -135,11 +135,12 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 //                << (tmpRoot.compare(root)) << std::endl << std::endl;
             if(!tmpRoot.compare(root)) {
 //               || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
+                std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
                 if (root.rfind("/") == root.length()) {
-                    std::cout << "CURRENT ROOT " << (*it)->getConfigList().find("root")->second << std::endl;
-                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + request.getBody().find("Request-URI")->second);
+                    std::cout << "CURRENT ROOT " << rootFromMap << std::endl;
+                    return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
                 } else {
-                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + request.getBody().find("Request-URI")->second);
+                    return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
                 }
             }
         }
