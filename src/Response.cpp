@@ -203,7 +203,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         readCounter = 0;
         return true;
     }
-	usleep(10);
+	// usleep(10);
     return false;
 }
 
