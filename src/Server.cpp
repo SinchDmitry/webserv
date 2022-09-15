@@ -10,6 +10,31 @@ void    printFdsArray(pollfd *fds, int nfds) {
     std::cout << "=================== end ===================" << std::endl << std::endl;
 }
 
+//void recoursePrinter(LocationInfo* locationInf) {
+//    std::cout << "-==GENERAL==-" << std::endl;
+//    std::cout << "type : " << locationInf->getType() << std::endl;
+//    std::cout << "lctn : " << locationInf->getLocation() << std::endl;
+//    std::multimap<std::string, std::string> config = locationInf->getConfigList();
+//    if (!config.empty()) {
+//        std::cout << "-==DATA==-" << std::endl;
+//        for (std::multimap<std::string, std::string>::iterator configIter = config.begin();
+//             configIter != config.end(); ++configIter) {
+//            std::cout << "parameter : " << configIter->first <<
+//                      " | value : " << configIter->second << std::endl;
+//        }
+//    }
+//    std::list<LocationInfo*> location = locationInf->getDownGradeList();
+//    // std::cout << "size : " << location.size() << std::endl;
+//    if (!location.empty()) {
+//        for (std::list<LocationInfo*>::iterator locationIter = location.begin();
+//             locationIter != location.end(); ++locationIter) {
+//            std::cout << "-==INCLUDE==-" << std::endl;
+//            recoursePrinter(*locationIter);
+//        }
+//    }
+//    std::cout << "-==END of " << locationInf->getType() << " ==-" << std::endl;
+//}
+
 /* class constructors/destructors */
 
 /* private class functiones */
@@ -117,6 +142,8 @@ void Server::setRequestByFd(int fd) {
 bool Server::setResponseByFd(int fd) {
     for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == fd) {
+//            recoursePrinter((*it)->getServer());
+//            std::cout << "Setting Response ..." << std::endl;
             return (*it)->setResponse(fd);
         }
     }
@@ -138,13 +165,16 @@ void Server::run() {
                 continue;
             } else if (findInListenSockets(_fds[i].fd)) {
 				if (addNewClientSocket(nfds, i)) {
+                    std::cout << "Add new client socket" << std::endl;
 					continue;
 				}
             } else if (_fds[i].revents == POLLIN) {
+                std::cout << "Set Request" << std::endl;
                 setRequestByFd(_fds[i].fd);
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
             } else if (_fds[i].revents == POLLOUT) {
+//                std::cout << "Setting Response..." << std::endl;
                 if (setResponseByFd(_fds[i].fd)) {
                     _fds[i].events = POLLIN;
                 }
@@ -152,7 +182,7 @@ void Server::run() {
             } else if (_fds[i].revents != POLLOUT && _fds[i].revents != POLLIN ) {
 				//debug ! ! ! ! 
 				std::cout << "revent : " << _fds[i].revents << std::endl;
-				//debug ! ! ! ! 
+				//debug ! ! ! !
                 closeClientSocket(nfds, i);
             } else {
                 perror("Error : wrong revent");
