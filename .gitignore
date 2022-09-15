@@ -35,3 +35,5 @@ webserv
 # Folders
 .vscode
 .idea
+
+.DS_Store

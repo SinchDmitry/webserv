@@ -41,7 +41,13 @@ int Server::addNewClientSocket(int &nfds, int i) {
 	_fds[nfds].fd = clientSocket;
 	_fds[nfds].events = POLLIN;
 	_fds[nfds].revents = 0;
-	_activeClients.push_back(new ClientSocket(clientSocket));
+    // привязка серверного сокета к клиентскому
+    std::list<ListenSocket*>::const_iterator it = _activeServers.begin();
+    for (; it != _activeServers.end(); it++) {
+        if ((*it)->getFd() == _fds[i].fd) {
+            _activeClients.push_back(new ClientSocket(clientSocket, (*it)));
+        }
+    }
 	nfds++;
 	return 0;
 }
@@ -81,6 +87,7 @@ int Server::initListningSocket(ListenSocket serverInfo) {
 	}	
 	/* фикс проблемы с "повисшим" bind */
 	int enable = 1;
+	setsockopt(listningSocket, SOL_SOCKET, SO_NOSIGPIPE,  &enable, sizeof(enable));
 	if (setsockopt(listningSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
 	    return SOCKET_ERROR;
 	}	
@@ -107,10 +114,10 @@ void Server::setRequestByFd(int fd) {
     }
 }
 
-bool Server::setResponseByFd(int fd, int readCounter) {
+bool Server::setResponseByFd(int fd) {
     for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == fd) {
-            return (*it)->setResponse(fd, readCounter);
+            return (*it)->setResponse(fd);
         }
     }
     return false;
@@ -126,7 +133,6 @@ void Server::run() {
 			break;
 		}
         /* ожидает запрос на установку TCP-соединения от удаленного хоста. */
-        static int readCounter;
         for (int i = 0; i < nfds; ++i) {
             if (_fds[i].revents == 0) {
                 continue;
@@ -139,11 +145,14 @@ void Server::run() {
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
             } else if (_fds[i].revents == POLLOUT) {
-                if (setResponseByFd(_fds[i].fd, readCounter)) {
+                if (setResponseByFd(_fds[i].fd)) {
                     _fds[i].events = POLLIN;
                 }
                 _fds[i].revents = 0;
-            } else if (_fds[i].revents != POLLOUT && _fds[i].revents != POLLIN) {
+            } else if (_fds[i].revents != POLLOUT && _fds[i].revents != POLLIN ) {
+				//debug ! ! ! ! 
+				std::cout << "revent : " << _fds[i].revents << std::endl;
+				//debug ! ! ! ! 
                 closeClientSocket(nfds, i);
             } else {
                 perror("Error : wrong revent");
@@ -173,7 +182,9 @@ void    Server::createListSockets() {
         if (tmpFd != SOCKET_ERROR) {
             _fds[i].fd = tmpFd;
             _fds[i].events = POLLIN;
+            newSocketFromConfig->setFd(tmpFd);
         }
+        _activeServers.push_back(newSocketFromConfig);
     }
 }
 

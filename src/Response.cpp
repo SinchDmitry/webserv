@@ -4,8 +4,9 @@
 
 #include "Response.hpp"
 
-Response::Response() : _httpVersion("HTTP/1.1") {
+Response::Response() : _httpVersion("HTTP/1.1"), _autoindex(false) {
     initStatusCodes();
+    initContentTypes();
 }
 
 Response::Response(const Response &copy) { *this = copy; }
@@ -21,31 +22,158 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
-bool Response::generateResponse(int clientSocket, Request request, int readCounter) {
+std::string Response::replace(std::string src, std::string s1, std::string s2) {
+    std::string dest = "";
+    size_t index;
+
+    if (s1 == s2) {
+        return src;
+    }
+
+    index = src.find(s1);
+
+    while (index != std::string::npos) {
+        dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
+        src = dest;
+        index = src.find(s1);
+    }
+
+    return dest;
+}
+
+std::string Response::UriDecode(const std::string & sSrc) {
+    std::map<std::string, std::string> uriSymbs;
+    uriSymbs["%20"] = " ";
+    uriSymbs["%22"] = "\"";
+    uriSymbs["%25"] = "%";
+    uriSymbs["%2D"] = "-";
+    uriSymbs["%2E"] = ".";
+    uriSymbs["%3C"] = "<";
+    uriSymbs["%3E"] = ">";
+    uriSymbs["%5C"] = "\\";
+    uriSymbs["%5E"] = "^";
+    uriSymbs["%5F"] = "_";
+    uriSymbs["%60"] = "`";
+    uriSymbs["%7B"] = "{";
+    uriSymbs["%7C"] = "|";
+    uriSymbs["%7D"] = "}";
+    uriSymbs["%7E"] = "~";
+
+    std::size_t found = sSrc.find("%");
+    if (found != std::string::npos) {
+        std::string sResult = replace(sSrc, sSrc.substr(found, 3),
+                                      uriSymbs.find(sSrc.substr(found, 3))->second);
+        std::cout << "\t\tFilename --- " << sResult << std::endl;
+        return sResult;
+    } else {
+        std::cout << "\t\tFilename --- " << sSrc << std::endl;
+        return sSrc;
+    }
+}
+
+//std::string Response::getFileName(ClientSocket client, Request request) {
+//    for (std::list<LocationInfo*>::const_iterator it = client.getServer()->getLocations().begin();
+//            it != client.getServer()->getLocations().end(); it++) {
+//        if (!request.getBody().count("Referer")) {
+//            if (!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
+//                if ((*it)->getConfigList().count("index")) {
+//                    return (*it)->getConfigList().find("index")->second;
+//                } else {
+//                    return "index.html";
+//                }
+//            }
+//        } else {
+//            std::string file = request.getBody().find("Request-URI")->second;
+//            return UriDecode(file.substr(1, file.length()));
+//        }
+//    }
+//
+//    return "null";
+//}
+
+std::string Response::getFileName(ClientSocket client, Request request) {
+    std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
+    std::string root;
+    if (!request.getBody().count("Referer")) {
+        root = request.getBody().find("Request-URI")->second;
+        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+            if(!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
+                if ((*it)->getConfigList().count("index")) {
+                    std::cout << "INDEX FOUND" << std::endl;
+                    _autoindex = false;
+                    return UriDecode("." + root + (*it)->getConfigList().find("index")->second);
+                } else {
+                    _autoindex = true;
+                    return "tmp.html";
+                }
+            }
+        }
+    } else {
+        std::string referer = request.getBody().find("Referer")->second;
+        std::string host = request.getBody().find("Host")->second;
+        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
+        _autoindex = false;
+        std::cout << root << std::endl
+                << root.length() << std::endl
+                << root.substr(root.length() - 2) << std::endl;
+        if (!root.substr(root.length() - 2, root.length() - 1).compare("/")) {
+            std::cout << "FILE" << std::endl;
+            return UriDecode("." + root.substr(0, root.length() - 2) + request.getBody().find("Request-URI")->second);
+        } else {
+            std::cout << "DIR" << std::endl;
+            return UriDecode("." + root + request.getBody().find("Request-URI")->second);
+        }
+    }
+
+    return "null";
+}
+
+bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
     std::stringstream response;
     static std::ifstream file;
+    std::string fileName;
     static bool headerFlag;
-    int size;
+	static int length;
 
     if (!headerFlag) {
-// file.open("resources/Screen Shot 2022-08-16 at 4.17.59 PM.png", std::ios::in | std::ios::binary | std::ios::ate);
-        file.open("./" + request.getBody().find("Request-URI")->second, std::ios::in | std::ios::binary | std::ios::ate);
-//        file.open("page.html", std::ios::in | std::ios::binary | std::ios::ate);
-//		file.open("resources/sample.mp3", std::ios::in | std::ios::binary | std::ios::ate);
-		if (file.fail()) {
-            perror("Error : can't open input file");
-            exit(1);
+        fileName = getFileName(client, request);
+        std::time_t tt;
+        time (&tt);
+        char resDate[100];
+
+        bodyMapPushBack("Server", client.getServer()->getName());
+        if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", std::localtime(&tt))) {
+            bodyMapPushBack("Date", resDate);
         }
-        size = file.tellg();
-        std::cout << "Content size : " << size << std::endl;
-        response << "HTTP/1.1 200 OK\r\n"
-                 << "Version: HTTP/1.1\r\n"
-                 // << "Content-Type: video/mp4; charset=utf-8\r\n"
-                 // << "Content-Type: image/png; charset=utf-8\r\n"
-                 << "Content-Type: text/html; charset=utf-8\r\n"
-                 //            << "Content-Type: audio/mpeg; charset=utf-8\r\n"
-                 << "Content-Length: " << size << "\r\n\r\n";
-        if (send(clientSocket, response.str().c_str(), response.str().length(), 0) == SOCKET_ERROR) {
+//        std::cout << "\t\t\tFileName -> " << fileName << std::endl;
+
+        struct stat attrib;
+        stat(fileName.c_str(), &attrib);
+        if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&(attrib.st_mtime)))) {
+            bodyMapPushBack("Last-Modified", resDate);
+        }
+
+        file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
+		if (file.fail()) {
+			std::cout << fileName << std::endl;
+            perror("Error : can't open input file");
+            _status = std::make_pair(404, _statusCodes.find(404)->second);
+//            exit(1);
+        } else {
+            _status = std::make_pair(200, _statusCodes.find(200)->second);
+        }
+		length = file.tellg();
+        bodyMapPushBack("Content-Length", std::to_string(file.tellg()));
+        bodyMapPushBack("Version", _httpVersion);
+        bodyMapPushBack("Connection", "Closed");
+        bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
+//        std::cout << "\t\t\tContent-Type -> " << _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second << "\t" << fileName.substr(fileName.rfind(".") + 1) << std::endl;
+        response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
+        for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
+            response << it->first << ": " << it->second << "\r\n";
+        }
+        response << "\r\n";
+        if (send(clientSocket, response.str().c_str(), response.str().length(), MSG_NOSIGNAL) == SOCKET_ERROR) {
             perror("Error : send message failure");
             exit(SOCKET_ERROR); // correct it
         }
@@ -54,16 +182,15 @@ bool Response::generateResponse(int clientSocket, Request request, int readCount
 
     file.seekg(readCounter);
     /* порционная отправка ответа */
-    char buff[READ_BUFFER_SIZE];
-    file.read(buff, READ_BUFFER_SIZE);
+	std::string buff(READ_BUFFER_SIZE, '0');
+    file.read(&buff[0], READ_BUFFER_SIZE);
 //	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
-    send(clientSocket, buff, READ_BUFFER_SIZE, 0);
+    if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
+        // perror("Error : send message failure");
+		return false;
+        //  exit(SOCKET_ERROR); // correct it
+    }
     readCounter += READ_BUFFER_SIZE;
-    // if (send(clientSocket, buff, READ_BUFFER_SIZE, 0) == SOCKET_ERROR) {
-    //     perror("Error : send message failure");
-    //     exit(SOCKET_ERROR); // correct it
-    // }
-    // readCounter += READ_BUFFER_SIZE;
 //	std::cout << "counter pos : " << file.tellg() << std::endl;
     if (file.eof()) {
         std::cout << "I'M DONE" << std::endl;
@@ -76,13 +203,29 @@ bool Response::generateResponse(int clientSocket, Request request, int readCount
     return false;
 }
 
-//bool Response::generateResponse(int clientSocket) {
-////    std::stringstream response;
-////    static std::ifstream file;
-//    std::cout << "ok" << std::endl;
-//
-//    return false;
-//}
+void Response::bodyMapPushBack(std::string key, std::string value) {
+    _body.insert(std::pair<std::string, std::string>(key, value));
+}
+
+void Response::initContentTypes() {
+    _contentTypes["gif"] = "image/gif";
+    _contentTypes["jpg"] = "image/jpeg";
+    _contentTypes["jpeg"] = "image/jpeg";
+    _contentTypes["png"] = "image/png";
+    _contentTypes["svg"] = "image/svg+xml";
+    _contentTypes["webp"] = "image/webp";
+    _contentTypes["ico"] = "image/vnd.microsoft.icon";
+
+    _contentTypes["css"] = "text/css";
+    _contentTypes["csv"] = "text/csv";
+    _contentTypes["html"] = "text/html";
+    _contentTypes["htm"] = "text/html";
+    _contentTypes["xml"] = "text/xml";
+    _contentTypes["htm"] = "text/html";
+    _contentTypes["pdf"] = "application/pdf";
+    _contentTypes["mp3"] = "audio/mpeg";
+    _contentTypes["mp4"] = "video/mp4";
+}
 
 void Response::initStatusCodes() {
     _statusCodes[100] = "Continue";

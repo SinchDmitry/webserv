@@ -11,18 +11,30 @@
 
 # include <fstream>
 # include <sstream>
+# include <ctime>
+# include <sys/stat.h>
 
 # include "Request.hpp"
+# include "ClientSocket.hpp"
 
 class Request;
+class ClientSocket;
 
 class Response {
 private:
-    std::string _httpVersion;
-    std::pair<int, std::string> _status;
-    std::map<std::string, std::string> _body;
-    std::map<int, std::string> _statusCodes;
+    std::string                         _httpVersion;
+    bool                                _autoindex;
+    std::pair<int, std::string>         _status;
+    std::map<std::string, std::string>  _body;
+    std::map<int, std::string>          _statusCodes;
+    std::map<std::string, std::string>  _contentTypes;
     void initStatusCodes();
+    void initContentTypes();
+
+    std::string replace(std::string src, std::string s1, std::string s2);
+    std::string UriDecode(const std::string & sSrc);
+    std::string getFileName(ClientSocket client, Request request);
+    void bodyMapPushBack(std::string key, std::string value);
 
 public:
     Response();
@@ -35,7 +47,7 @@ public:
     const std::map<std::string, std::string>& getBody() const { return _body; };
     const std::map<int, std::string>& getStatusCodes() const { return _statusCodes; };
 
-    bool generateResponse(int clientSocket, Request request, int readCounter);
+    bool generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
 };
 
 

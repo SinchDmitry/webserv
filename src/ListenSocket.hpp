@@ -12,12 +12,14 @@ class ListenSocket {
 		std::string					_ip;
 		std::string					_name;
 		std::list<LocationInfo*>	_locations;
+        int                         _fd;
 
 		/* functions */
 		std::list<std::string>  split(const std::string& str, std::string myDelim);
 
 	public:
 		/* constructors */
+        ListenSocket() {}
 		ListenSocket(LocationInfo* server);
 		ListenSocket(const ListenSocket& copy)  { *this = copy; }
 		ListenSocket& operator = (const ListenSocket& op);
@@ -28,6 +30,10 @@ class ListenSocket {
 		int getLocationSize(void) const 		{ return _locations.size(); }
 		const std::string&	getIP(void) const	{ return _ip; }
 		const std::string&	getName(void) const	{ return _name; }
+        const int getFd(void) const             { return _fd; }
+        const std::list<LocationInfo*>& getLocations(void) const { return _locations; }
+
+        void setFd(const int fd) { _fd = fd; }
 };
 
 static std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {

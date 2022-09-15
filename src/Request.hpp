@@ -9,6 +9,7 @@
 # include <string>
 # include <list>
 # include <iostream>
+# include <cstring>
 
 # include <sys/types.h>
 # include <sys/socket.h>
@@ -24,6 +25,7 @@ private:
     std::map<std::string, std::string>  _body;
     std::string                         _method;
     std::string                         _message;
+//    std::string                         _root;
 
     std::list<std::string>  split(const std::string& str, std::string myDelim);
     bool                    readToBuffer( int clientSocket, bool isHeader );
@@ -38,8 +40,10 @@ public:
     const std::map<std::string, std::string>&   getBody() const  { return _body; };
     const std::string&                          getMethod() const { return _method; };
     const std::string&                          getMessage() const { return _message; };
+//    const std::string&                          getRoot() const { return _root; };
 
     void setMethod( const std::string method ) { _method = method; };
+//    void setRoot( const std::string root ) { _root = root; };
 
     void bodyMapPushBack(std::string key, std::string value);
     void parseRequest(int clientSocket);
