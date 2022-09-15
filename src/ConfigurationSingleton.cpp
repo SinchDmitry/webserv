@@ -69,6 +69,7 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 		++(stringParserIter);
 		infoString = split(*stringParserIter, " \t\r\v\n\f");
 		if (*infoString.begin() == "#") {
+			// std::cout << "here" << std::endl;
 			continue;
 		}
 		std::list<std::string>::iterator tmpIter = --infoString.end();
@@ -91,15 +92,16 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 				tmpIter != infoString.end(); ++tmpIter) {
 					stringUnion += *tmpIter;
 			}
-			downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
+			// downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
 		} else {
+			std::cout << "here open : "<< *stringParserIter << " size : " << infoString.size() << std::endl;
 			exit(1);
 		}
 	}
 	localHead.configListPushBack(downGrade);
 }
-/* debug function / recource printer
-void recoursePrinter(LocationInfo* locationInf) {
+/* debug function / recource printer */
+void recoursePrinterConf(LocationInfo* locationInf) {
 	std::cout << "-==GENERAL==-" << std::endl;
 	std::cout << "type : " << locationInf->getType() << std::endl;
 	std::cout << "lctn : " << locationInf->getLocation() << std::endl;
@@ -118,12 +120,12 @@ void recoursePrinter(LocationInfo* locationInf) {
 		for (std::list<LocationInfo*>::iterator locationIter = location.begin(); 
 			locationIter != location.end(); ++locationIter) {
 				std::cout << "-==INCLUDE==-" << std::endl;
-				recoursePrinter(*locationIter);
+				recoursePrinterConf(*locationIter);
 		}
 	}
 	std::cout << "-==END of " << locationInf->getType() << " ==-" << std::endl;
 }
-*/
+// */
 
 void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
 	std::list<std::string>::iterator stringParserIterator = inputFile.begin(); // создал итератор на начало
@@ -137,8 +139,8 @@ void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
 	}
 	_tree = treeHead; // голову списка сохраняем, как голову дерева
 
-	/* debug / recourse printer for tree
+	/* debug / recourse printer for tree */
 	std::cout << "==PRINTER==" << std::endl;
-	recoursePrinter(_tree);
-	*/
+	recoursePrinterConf(_tree);
+	// */
 }
