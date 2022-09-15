@@ -96,7 +96,6 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
     std::string root;
     std::string requestURI = request.getBody().find("Request-URI")->second;
-//    std::cout <<
     if (requestURI.rfind("/") == requestURI.length() - 1) { // last "/" => directory
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             std::cout << (*it)->getLocation() << " == "
@@ -138,6 +137,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 	static int length;
 
     fileName = getFileName(client, request);
+    file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (!headerFlag) {
         std::cout << "Response Header" << std::endl;
         std::time_t tt;
@@ -156,7 +156,6 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
             bodyMapPushBack("Last-Modified", resDate);
         }
 
-        file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.fail()) {
 			std::cout << fileName << std::endl;
             perror("Error : can't open input file");
@@ -186,7 +185,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     /* порционная отправка ответа */
 	std::string buff(READ_BUFFER_SIZE, '0');
     file.read(&buff[0], READ_BUFFER_SIZE);
-//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
+	//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
         std::cout << "Error " << fileName << std::endl;
         // perror("Error : send message failure");
@@ -194,7 +193,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         //  exit(SOCKET_ERROR); // correct it
     }
     readCounter += READ_BUFFER_SIZE;
-//	std::cout << "counter pos : " << file.tellg() << std::endl;
+	//	std::cout << "counter pos : " << file.tellg() << std::endl;
     if (file.eof()) {
         std::cout << "I'M DONE" << std::endl;
         headerFlag = false;
@@ -203,7 +202,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         readCounter = 0;
         return true;
     }
-	// usleep(10);
+    file.close();
     return false;
 }
 
