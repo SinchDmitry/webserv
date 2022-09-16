@@ -112,15 +112,20 @@ std::string Response::getFileName(ClientSocket client, Request request) {
         }
     } else { // файл
 //        std::cout << "HERE" << std::endl;
-        std::string referer = request.getBody().find("Referer")->second;
         std::string host = request.getBody().find("Host")->second;
 		host = host.substr(0, host.length() - 1);
+//        std::cout << "HOST -> " << host << std::endl;
+
+        std::string referer = request.getBody().find("Referer")->second;
+//	    std::cout << "REF -> " << referer << std::endl;
+
         int found = referer.find(host) + host.length();
-        root = referer.substr(found, referer.length() - 2 - found);
+        root = referer.substr(found, referer.length() - 1 - found);
+//        std::cout << "ROOT -> " << root << std::endl;
+
+        if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
 		if (root.empty()) { root = "/"; }
-    //    std::cout << "ROOT -> " << root << std::endl;
-    //    std::cout << "HOST -> " << host << std::endl;
-	//    std::cout << "REF -> " << referer << std::endl;
+        std::cout << "NEW ROOT " << root << std::endl;
 //        std::cout << "LEN -> " << host.substr(0, host.length() - 1).length() << std::endl;
 //        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
 //        root[root.length()] = '\0';
@@ -130,13 +135,14 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     //    std::cout << "CURRENT ROOT " << root << " | LENGTH : " << root.length() << std::endl;
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             std::string tmpRoot = (*it)->getLocation();
-       		// std::cout << "TMP ROOT " << tmpRoot << " | LENGTH : " << tmpRoot.length() << std::endl;
+//       		 std::cout << "TMP ROOT " << tmpRoot << " | LENGTH : " << tmpRoot.length() << std::endl;
 //            std::cout << tmpRoot.length() << std::endl
 //                << root.length() << std::endl
 //                << (tmpRoot.compare(root)) << std::endl << std::endl;
             if(!tmpRoot.compare(root)) {
 //               || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
                 std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
+                std::cout << "FOUND LOCATION " << rootFromMap << std::endl;
                 if (root.rfind("/") == root.length()) {
                     std::cout << "CURRENT ROOT " << rootFromMap << std::endl;
                     return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
