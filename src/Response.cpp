@@ -125,14 +125,14 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 
         if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
 		if (root.empty()) { root = "/"; }
-        std::cout << "NEW ROOT " << root << std::endl;
+//        std::cout << "NEW ROOT " << root << std::endl;
 //        std::cout << "LEN -> " << host.substr(0, host.length() - 1).length() << std::endl;
 //        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
 //        root[root.length()] = '\0';
 //        std::cout << referer << std::endl
 //                << host << std::endl
 //                << root << std::endl;
-    //    std::cout << "CURRENT ROOT " << root << " | LENGTH : " << root.length() << std::endl;
+//        std::cout << "CURRENT ROOT " << root << " | LENGTH : " << root.length() << std::endl;
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             std::string tmpRoot = (*it)->getLocation();
 //       		 std::cout << "TMP ROOT " << tmpRoot << " | LENGTH : " << tmpRoot.length() << std::endl;
@@ -142,10 +142,13 @@ std::string Response::getFileName(ClientSocket client, Request request) {
             if(!tmpRoot.compare(root)) {
 //               || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
                 std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
-                std::cout << "FOUND LOCATION " << rootFromMap << std::endl;
-                if (root.rfind("/") == root.length()) {
-                    std::cout << "CURRENT ROOT " << rootFromMap << std::endl;
-                    return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
+//                std::cout << "FOUND LOCATION " << rootFromMap << std::endl;
+                found = requestURI.find(root);
+                if (found != std::string::npos) {
+                    if (rootFromMap.rfind("/") == rootFromMap.length() - 1 && requestURI.substr(found + root.length()).find("/") == 0) { found++ ; }
+                    std::string fileName = "./" + rootFromMap + requestURI.substr(found + root.length());
+//                if (root.rfind("/") == root.length()) {
+                    return UriDecode(fileName);
                 } else {
 
 
@@ -154,7 +157,7 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 
 					// std::cout << "Debag root " << "./" << rootFromMap.substr(0, rootFromMap.length() - 1) << " " << request.getBody().find("Request-URI")->second << rootFromMap << std::endl;
                     // return UriDecode("./" + request.getBody().find("Request-URI")->second);
-                    return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + request.getBody().find("Request-URI")->second);
+                    return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + requestURI);
 
 
 					/* !!! 👀👀 HERE WRONG WAY TO DOC & LIST AND CORRECT FOR HOME, WTF  👀👀 !!! */
