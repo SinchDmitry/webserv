@@ -40,6 +40,7 @@ void    printFdsArray(pollfd *fds, int nfds) {
 /* private class functiones */
 sockaddr_in Server::setIdInfo(ListenSocket serverInfo) {
 	struct sockaddr_in addr;    // информация об IP адресе	
+	memset(&addr, 0, sizeof(addr));
 	/* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */ 
 	addr.sin_family = AF_INET;  // IPv4 протоколы Интернет
 	addr.sin_addr.s_addr = inet_addr(serverInfo.getIP().c_str());    
@@ -117,10 +118,21 @@ int Server::initListningSocket(ListenSocket serverInfo) {
 	}	
 	/* фикс проблемы с "повисшим" bind */
 	int enable = 1;
-	setsockopt(listningSocket, SOL_SOCKET, SO_NOSIGPIPE,  &enable, sizeof(enable));
-	if (setsockopt(listningSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
+	signal(SIGPIPE, SIG_IGN);
+	// setsockopt(listningSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+	// signal(SIGPIPE, SIG_IGN);
+	if (setsockopt(listningSocket, SOL_SOCKET, SO_NOSIGPIPE, &enable, sizeof(enable)) < 0) {
 	    return SOCKET_ERROR;
 	}	
+	if (setsockopt(listningSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
+	    return SOCKET_ERROR;
+	}
+	// int opt_len = sizeof(int);
+	// int err = getsockopt(listningSocket, SOL_SOCKET, SO_LINGER, &enable, (socklen_t *)&opt_len);
+	// std::cout << "get : " << err << std::endl;
+	// if (err == -1) {
+	// 	std::cout << "errno : " << errno << std::endl;
+	// }
 	/* привязка сокета IP-адресу */
 	if (bind(listningSocket, (const sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR) {
 	    perror("Error : cannot bind a socket");

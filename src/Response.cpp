@@ -170,8 +170,8 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
         std::cout << "Error " << fileName << std::endl;
         perror("Error : send message failure");
+        file.close();
         file.clear();
-//        file.close();
 		return false;
         //  exit(SOCKET_ERROR); // correct it
     }
@@ -185,7 +185,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         readCounter = 0;
         return true;
     }
-//    file.clear();
+    // file.clear();
     file.close();
     return false;
 }

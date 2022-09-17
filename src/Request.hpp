@@ -18,7 +18,7 @@
 # define EMPTY_BUFFER		0
 # define SOCKET_ERROR       -1
 # define MAX_SHORT          32767
-# define READ_BUFFER_SIZE   10000
+# define READ_BUFFER_SIZE   3000
 
 class Request {
 private:

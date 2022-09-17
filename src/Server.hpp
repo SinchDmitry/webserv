@@ -40,7 +40,7 @@ class Server
         bool            setResponseByFd(int fd);
 
     public:
-        Server(){}
+        Server(){ memset(_fds, 0, sizeof(_fds)); }
 		~Server(){}
 
         int         initListningSocket(ListenSocket serverInfo);
