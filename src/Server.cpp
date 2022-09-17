@@ -82,7 +82,12 @@ void Server::closeClientSocket(int &nfds, int &i) {
 	close(_fds[i].fd);
     for (std::list<ClientSocket *>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == _fds[i].fd) {
-            _activeClients.erase(it);
+//        if ((*it)->getFD() == _fds[i].fd
+//            if ((*it)->getRequest().getBody().find("Connection")->second.compare("keep-alive")) {
+                _activeClients.erase(it);
+//            } else {
+//                return;
+//            }
         }
     }
 	for (int j = i; j < nfds - 1; j++) {
@@ -142,8 +147,6 @@ void Server::setRequestByFd(int fd) {
 bool Server::setResponseByFd(int fd) {
     for (std::list<ClientSocket*>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == fd) {
-//            recoursePrinter((*it)->getServer());
-//            std::cout << "Setting Response ..." << std::endl;
             return (*it)->setResponse(fd);
         }
     }
@@ -172,7 +175,6 @@ void Server::run() {
                 _fds[i].events = POLLOUT;
                 _fds[i].revents = 0;
             } else if (_fds[i].revents == POLLOUT) {
-//                std::cout << "Setting Response..." << std::endl;
                 if (setResponseByFd(_fds[i].fd)) {
                     _fds[i].events = POLLIN;
                 }
@@ -200,7 +202,6 @@ void    Server::createListSockets() {
 	}
 	/* лист с информацией о listen socket ах, который надо обработать при инициализации сокетов */
 	std::list<LocationInfo*>::const_iterator listOfServerIter = root->getDownGradeList().begin();
-	// std::cout << (*listOfServerIter)->getType() << std::endl;
 	_numOfListenSocket = root->getDownGradeList().size();
 	/* инифиализация сокетов */
     for (int i = 0; i < _numOfListenSocket; ++i) {

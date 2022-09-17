@@ -13,6 +13,7 @@ class ListenSocket {
 		std::string					_name;
 		std::list<LocationInfo*>	_locations;
         int                         _fd;
+        bool                        _autoindex;
 
 		/* functions */
 		std::list<std::string>  split(const std::string& str, std::string myDelim);
@@ -32,6 +33,7 @@ class ListenSocket {
 		const std::string&	getName(void) const	{ return _name; }
         const int getFd(void) const             { return _fd; }
         const std::list<LocationInfo*>& getLocations(void) const { return _locations; }
+        const bool getAutoindex(void) const     { return _autoindex; }
 
         void setFd(const int fd) { _fd = fd; }
 };

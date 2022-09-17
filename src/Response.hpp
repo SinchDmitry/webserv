@@ -24,13 +24,15 @@ private:
     std::map<std::string, std::string>  _body;
     std::map<int, std::string>          _statusCodes;
     std::map<std::string, std::string>  _contentTypes;
+
     void initStatusCodes();
     void initContentTypes();
 
     std::string replace(std::string src, std::string s1, std::string s2);
     std::string UriDecode(const std::string & sSrc);
     std::string getFileName(ClientSocket client, Request request);
-    void bodyMapPushBack(std::string key, std::string value);
+    void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);
+    void        bodyMapPushBack(std::string key, std::string value);
 
 public:
     Response();
@@ -38,10 +40,10 @@ public:
     Response& operator=(const Response& src);
     ~Response();
 
-    const std::string& getHttpVersion() const { return _httpVersion; };
-    const std::pair<int, std::string>& getStatus() const { return _status; };
-    const std::map<std::string, std::string>& getBody() const { return _body; };
-    const std::map<int, std::string>& getStatusCodes() const { return _statusCodes; };
+    const std::string&                          getHttpVersion() const { return _httpVersion; };
+    const std::pair<int, std::string>&          getStatus() const { return _status; };
+    const std::map<std::string, std::string>&   getBody() const { return _body; };
+    const std::map<int, std::string>&           getStatusCodes() const { return _statusCodes; };
 
     bool generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
 };

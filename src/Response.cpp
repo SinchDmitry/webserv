@@ -22,19 +22,13 @@ Response::~Response() {}
 std::string Response::replace(std::string src, std::string s1, std::string s2) {
     std::string dest = "";
     size_t index;
-
-    if (s1 == s2) {
-        return src;
-    }
-
+    if (s1 == s2) { return src; }
     index = src.find(s1);
-
     while (index != std::string::npos) {
         dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
         src = dest;
         index = src.find(s1);
     }
-
     return dest;
 }
 
@@ -60,123 +54,80 @@ std::string Response::UriDecode(const std::string & sSrc) {
     if (found != std::string::npos) {
         std::string sResult = replace(sSrc, sSrc.substr(found, 3),
                                       uriSymbs.find(sSrc.substr(found, 3))->second);
-    //    std::cout << "\t\tFilename --- " << sResult << std::endl;
         return sResult;
     } else {
-//        std::cout << "\t\tFilename --- " << sSrc << std::endl;
         return sSrc;
     }
 }
-
-//std::string Response::getFileName(ClientSocket client, Request request) {
-//    for (std::list<LocationInfo*>::const_iterator it = client.getServer()->getLocations().begin();
-//            it != client.getServer()->getLocations().end(); it++) {
-//        if (!request.getBody().count("Referer")) {
-//            if (!(*it)->getLocation().compare(request.getBody().find("Request-URI")->second)) {
-//                if ((*it)->getConfigList().count("index")) {
-//                    return (*it)->getConfigList().find("index")->second;
-//                } else {
-//                    return "index.html";
-//                }
-//            }
-//        } else {
-//            std::string file = request.getBody().find("Request-URI")->second;
-//            return UriDecode(file.substr(1, file.length()));
-//        }
-//    }
-//
-//    return "null";
-//}
 
 std::string Response::getFileName(ClientSocket client, Request request) {
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
     std::string root;
     std::string requestURI = request.getBody().find("Request-URI")->second;
+//    if (client.getServer())
     if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             if(!(*it)->getLocation().compare(requestURI)
                 || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
                 if ((*it)->getConfigList().count("index")) {
-//                    std::cout << "INDEX" << std::endl;
                     _autoindex = false; // если есть поле index в локации, то пусть к файлу = ./<root>/<index>
-                //    std::cout << "CURRENT ROOT " << (*it)->getConfigList().find("root")->second << std::endl;
-				
                     return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
                 } else {
-//                    std::cout << "NOT INDEX" << std::endl;
                     _autoindex = true;
                     return "tmp.html";
                 }
             }
         }
     } else { // файл
-//        std::cout << "HERE" << std::endl;
         std::string host = request.getBody().find("Host")->second;
 		host = host.substr(0, host.length() - 1);
-//        std::cout << "HOST -> " << host << std::endl;
-
         std::string referer = request.getBody().find("Referer")->second;
-//	    std::cout << "REF -> " << referer << std::endl;
-
         int found = referer.find(host) + host.length();
         root = referer.substr(found, referer.length() - 1 - found);
-//        std::cout << "ROOT -> " << root << std::endl;
 
         if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
 		if (root.empty()) { root = "/"; }
-//        std::cout << "NEW ROOT " << root << std::endl;
-//        std::cout << "LEN -> " << host.substr(0, host.length() - 1).length() << std::endl;
-//        root = referer.substr(referer.find_last_of(host.substr(0, host.length() - 1)) + 1);
-//        root[root.length()] = '\0';
-//        std::cout << referer << std::endl
-//                << host << std::endl
-//                << root << std::endl;
-//        std::cout << "CURRENT ROOT " << root << " | LENGTH : " << root.length() << std::endl;
+
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             std::string tmpRoot = (*it)->getLocation();
-//       		 std::cout << "TMP ROOT " << tmpRoot << " | LENGTH : " << tmpRoot.length() << std::endl;
-//            std::cout << tmpRoot.length() << std::endl
-//                << root.length() << std::endl
-//                << (tmpRoot.compare(root)) << std::endl << std::endl;
-            if(!tmpRoot.compare(root)) {
-//               || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
+            if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
                 std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
-//                std::cout << "FOUND LOCATION " << rootFromMap << std::endl;
                 found = requestURI.find(root);
                 if (found != std::string::npos) {
                     if (rootFromMap.rfind("/") == rootFromMap.length() - 1 && requestURI.substr(found + root.length()).find("/") == 0) { found++ ; }
                     std::string fileName = "./" + rootFromMap + requestURI.substr(found + root.length());
-//                if (root.rfind("/") == root.length()) {
                     return UriDecode(fileName);
                 } else {
-
-
-					/* !!! 👀👀 HERE WRONG WAY TO DOC & LIST AND CORRECT FOR HOME, WTF  👀👀 !!! */
-
-
-					// std::cout << "Debag root " << "./" << rootFromMap.substr(0, rootFromMap.length() - 1) << " " << request.getBody().find("Request-URI")->second << rootFromMap << std::endl;
-                    // return UriDecode("./" + request.getBody().find("Request-URI")->second);
                     return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + requestURI);
-
-
-					/* !!! 👀👀 HERE WRONG WAY TO DOC & LIST AND CORRECT FOR HOME, WTF  👀👀 !!! */
-
-
 				}
             }
         }
-
         _autoindex = false;
-//        if (!root.substr(root.length() - 2, root.length() - 1).compare("/")) {
-////            return UriDecode("." + root.substr(0, root.length() - 2) + request.getBody().find("Request-URI")->second);
-//            return UriDecode("./" + root + request.getBody().find("Request-URI")->second);
-//        } else {
-//            return UriDecode("./" + root + request.getBody().find("Request-URI")->second);
-//        }
+    }
+    return "null";
+}
+
+void Response::fillHeaders(ClientSocket client, std::string fileName, int contentLength) {
+    bodyMapPushBack("Server", client.getServer()->getName());
+    std::time_t tt;
+    time (&tt);
+    char resDate[100];
+
+    if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", std::localtime(&tt))) {
+        bodyMapPushBack("Date", resDate);
     }
 
-    return "null";
+    struct stat attrib;
+    stat(fileName.c_str(), &attrib);
+    if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&(attrib.st_mtime)))) {
+        bodyMapPushBack("Last-Modified", resDate);
+    }
+
+    bodyMapPushBack("Content-Length", std::to_string(contentLength));
+    bodyMapPushBack("Version", _httpVersion);
+    bodyMapPushBack("Connection", "Closed");
+    bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
 }
 
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
@@ -184,41 +135,21 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     static std::ifstream file;
     std::string fileName;
     static bool headerFlag;
-	static int length;
 
     fileName = getFileName(client, request);
     file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (!headerFlag) {
-        std::cout << "Response Header" << std::endl;
-        std::time_t tt;
-        time (&tt);
-        char resDate[100];
-
-        bodyMapPushBack("Server", client.getServer()->getName());
-        if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", std::localtime(&tt))) {
-            bodyMapPushBack("Date", resDate);
-        }
         std::cout << "\t\tFileName -> " << fileName << std::endl;
-
-        struct stat attrib;
-        stat(fileName.c_str(), &attrib);
-        if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&(attrib.st_mtime)))) {
-            bodyMapPushBack("Last-Modified", resDate);
-        }
-
 		if (file.fail()) {
 			std::cout << fileName << std::endl;
             perror("Error : can't open input file");
             _status = std::make_pair(404, _statusCodes.find(404)->second);
-//            exit(1);
         } else {
             _status = std::make_pair(200, _statusCodes.find(200)->second);
         }
-		length = file.tellg();
-        bodyMapPushBack("Content-Length", std::to_string(file.tellg()));
-        bodyMapPushBack("Version", _httpVersion);
-        bodyMapPushBack("Connection", "Closed");
-        bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
+
+        std::cout << "ok here" << std::endl;
+        fillHeaders(client, fileName, file.tellg());
         response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
         for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
             response << it->first << ": " << it->second << "\r\n";
@@ -237,8 +168,10 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     file.read(&buff[0], READ_BUFFER_SIZE);
 	//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
-        // std::cout << "Error " << fileName << std::endl;
+        std::cout << "Error " << fileName << std::endl;
         perror("Error : send message failure");
+        file.clear();
+//        file.close();
 		return false;
         //  exit(SOCKET_ERROR); // correct it
     }
@@ -252,6 +185,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         readCounter = 0;
         return true;
     }
+//    file.clear();
     file.close();
     return false;
 }

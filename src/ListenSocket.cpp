@@ -34,6 +34,7 @@ ListenSocket::ListenSocket(LocationInfo* server)
 	// _locations(server->getDownGradeList())
 {
 	std::multimap<std::string, std::string> mapWithServerInfo = server->getConfigList();
+    _autoindex = mapWithServerInfo.count("autoindex");
 	_name = mapWithServerInfo.find("server_name")->second;
 	std::list<std::string> splitForIpPort = split(server->getConfigList().find("listen")->second, ":");
 	std::list<std::string>::iterator IpPortIter = splitForIpPort.begin();
