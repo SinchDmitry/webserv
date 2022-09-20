@@ -1,0 +1,29 @@
+.btn {
+    box-shadow: 3px 4px 6px rgba(143, 141, 141, 0.25);
+}
+
+.card-text {
+    font-size: 24px;
+}
+
+.card {
+    height: 300px;
+}
+
+.text-position {
+    margin-top: 200px;
+    text-align: center;
+}
+
+.big-number {
+    font-size: 50px;
+}
+
+.btn-lg {
+    height: 70px;
+    width: 250px;
+}
+
+#start, #stop {
+    font-size: 35px;
+}
