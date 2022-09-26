@@ -56,9 +56,6 @@ void Request::parseRequest(int clientSocket) {
     bodyMapPushBack("Request-URI", *(it++));
     bodyMapPushBack("HTTP-Version", *it);
 
-    std::cout << "\tMethod -> " << _method << std::endl;
-    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
-    std::cout << "\tHTTP-Version -> " << _body.find("HTTP-Version")->second << std::endl;
 
     // создаем мапу из шапки
     it = ++rawData.begin();
@@ -74,6 +71,12 @@ void Request::parseRequest(int clientSocket) {
         }
         _message[_message.length()] = '\0';
     }
+    std::cout << "\tMethod -> " << _method << std::endl;
+    std::cout << "\tHost -> " << _body.find("Host")->second << std::endl;
+    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
+    if (_body.count("Referer")) {
+        std::cout << "\tReferer -> " << _body.find("Referer")->second << std::endl;
+    }
     std::cout << "\tMessage -> " << _message << std::endl;
 //    std::cout << "======= HTTP REQUEST =======" << std::endl;
 //    for (std::map<std::string, std::string>::iterator it = _body.begin();
@@ -81,7 +84,6 @@ void Request::parseRequest(int clientSocket) {
 //        std::cout << it->first << ": " << it->second << std::endl;
 //    }
 //    std::cout << "======= ============ =======" << std::endl;
-//    std::cout << std::endl << "Host: " << _body.find("Host")->second << std::endl;
 }
 
 std::list<std::string> Request::split(const std::string& str, std::string myDelim)

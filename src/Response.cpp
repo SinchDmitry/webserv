@@ -82,28 +82,33 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     } else { // файл
         std::string host = request.getBody().find("Host")->second;
 		host = host.substr(0, host.length() - 1);
-        std::string referer = request.getBody().find("Referer")->second;
-        int found = referer.find(host) + host.length();
-        root = referer.substr(found, referer.length() - 1 - found);
+        std::string referer;
+        int found;
+        if (request.getBody().count("Referer")) {
+            referer = request.getBody().find("Referer")->second;
+            found = referer.find(host) + host.length();
+            root = referer.substr(found, referer.length() - 1 - found);
 
-        if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
-		if (root.empty()) { root = "/"; }
+            if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
+            if (root.empty()) { root = "/"; }
 
-        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-            std::string tmpRoot = (*it)->getLocation();
-            if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
-                std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
-                found = requestURI.find(root);
-                if (found != std::string::npos) {
-                    if (rootFromMap.rfind("/") == rootFromMap.length() - 1 && requestURI.substr(found + root.length()).find("/") == 0) { found++ ; }
-                    std::string fileName = "./" + rootFromMap + requestURI.substr(found + root.length());
-                    return UriDecode(fileName);
-                } else {
-                    return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + requestURI);
-				}
+            for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+                std::string tmpRoot = (*it)->getLocation();
+                if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
+                    std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
+                    found = requestURI.find(root);
+                    if (found != std::string::npos) {
+                        if (rootFromMap.rfind("/") == rootFromMap.length() - 1 && requestURI.substr(found + root.length()).find("/") == 0) { found++ ; }
+                        std::string fileName = "./" + rootFromMap + requestURI.substr(found + root.length());
+                        return UriDecode(fileName);
+                    } else {
+                        return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + requestURI);
+                    }
+                }
             }
+        } else {
+            return UriDecode("." + requestURI);
         }
-        _autoindex = false;
     }
     return "null";
 }
