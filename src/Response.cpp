@@ -145,6 +145,9 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (!headerFlag) {
         std::cout << "\t\tFileName -> " << fileName << std::endl;
+        if (request.getBody().count("Transfer-Encoding")) {
+            std::cout << request.getBody().find("Transfer-Encoding")->second << std::endl;
+        }
 		if (file.fail()) {
 			std::cout << fileName << std::endl;
             perror("Error : can't open input file");
