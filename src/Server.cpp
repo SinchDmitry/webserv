@@ -38,7 +38,7 @@ void    printFdsArray(pollfd *fds, int nfds) {
 /* class constructors/destructors */
 
 /* private class functiones */
-sockaddr_in Server::setIdInfo(ListenSocket serverInfo) {
+sockaddr_in Server::setIdInfo(const ListenSocket& serverInfo) {
 	struct sockaddr_in addr;    // информация об IP адресе	
 	memset(&addr, 0, sizeof(addr));
 	/* https://www.opennet.ru/cgi-bin/opennet/man.cgi?topic=socket&category=2 */ 
@@ -109,7 +109,7 @@ int Server::waitForPoll(int nfds) {
 }
 
 /* public clss functiones */
-int Server::initListningSocket(ListenSocket serverInfo) {
+int Server::initListningSocket(const ListenSocket&  serverInfo) {
 	struct sockaddr_in addr = setIdInfo(serverInfo);
 	int listningSocket = socket(addr.sin_family, SOCK_STREAM, 0);
 	if (listningSocket == SOCKET_ERROR) {
@@ -206,7 +206,7 @@ void Server::run() {
 }
 
 void    Server::createListSockets() {
-	ConfigurationSingleton* infoFromConfig = infoFromConfig->getInstance();
+	ConfigurationSingleton* infoFromConfig = ConfigurationSingleton::getInstance();
 	LocationInfo* root = (infoFromConfig->getTreeHead());
 	/* поиск пространства с информацией о listen socket */
 	while (!root->getDownGradeList().empty() && (*(root->getDownGradeList().begin()))->getType() != "server") {
@@ -217,7 +217,7 @@ void    Server::createListSockets() {
 	_numOfListenSocket = root->getDownGradeList().size();
 	/* инифиализация сокетов */
     for (int i = 0; i < _numOfListenSocket; ++i) {
-		ListenSocket *newSocketFromConfig = new ListenSocket(*(listOfServerIter++));
+		ListenSocket *newSocketFromConfig = new ListenSocket(*(listOfServerIter++)); // не забыть добавить делете
         int tmpFd = initListningSocket(*newSocketFromConfig);
         std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;
         if (tmpFd != SOCKET_ERROR) {

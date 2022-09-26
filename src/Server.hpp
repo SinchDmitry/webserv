@@ -31,7 +31,7 @@ class Server
 
 		/* functions */
         bool            findInListenSockets(int fd);
-		sockaddr_in     setIdInfo(ListenSocket serverInfo);
+		sockaddr_in     setIdInfo(const ListenSocket&  serverInfo);
 		int  		    addNewClientSocket(int &nfds, int i);
 		void		    closeClientSocket(int &nfds, int &i);
 		int			    waitForPoll(int nfds);
@@ -43,7 +43,7 @@ class Server
         Server(){ memset(_fds, 0, sizeof(_fds)); }
 		~Server(){}
 
-        int         initListningSocket(ListenSocket serverInfo);
+        int         initListningSocket(const ListenSocket&  serverInfo);
         int         initPoll(int listningSocket);
         void        run();
 
