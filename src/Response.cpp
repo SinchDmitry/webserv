@@ -63,27 +63,34 @@ std::string Response::UriDecode(const std::string & sSrc) {
 std::string Response::getFileName(ClientSocket client, Request request) {
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
     std::string root;
+    std::string referer;
+    int found;
     std::string requestURI = request.getBody().find("Request-URI")->second;
-//    if (client.getServer())
+    std::string host = request.getBody().find("Host")->second;
+    host = host.substr(0, host.length() - 1);
+    if (request.getBody().count("Referer")) {
+        referer = request.getBody().find("Referer")->second;
+        found = referer.find(host) + host.length();
+        root = referer.substr(found, referer.length() - found - 1);
+    } else {
+        root = "";
+    }
     if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
+        std::cout << "ROOT in GETFILENAME " << root << std::endl;
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             if(!(*it)->getLocation().compare(requestURI)
                 || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
-                if ((*it)->getConfigList().count("index")) {
-                    _autoindex = false; // если есть поле index в локации, то пусть к файлу = ./<root>/<index>
+                if (_autoindex && (*it)->getConfigList().count("index")) {
                     return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
                 } else {
-                    _autoindex = true;
-                    return "tmp.html";
+                    lsHtml(root + requestURI);
+                    return ".tmp.html";
                 }
             }
         }
     } else { // файл
-        std::string host = request.getBody().find("Host")->second;
-		host = host.substr(0, host.length() - 1);
-        std::string referer;
-        int found;
+//		host = host.substr(0, host.length() - 1);
         if (request.getBody().count("Referer")) {
             referer = request.getBody().find("Referer")->second;
             found = referer.find(host) + host.length();
@@ -110,8 +117,89 @@ std::string Response::getFileName(ClientSocket client, Request request) {
             return UriDecode("." + requestURI);
         }
     }
-    return "null";
+    lsHtml(root + requestURI);
+    return ".tmp.html";
 }
+
+std::string Response::lsHtml(std::string uri) {
+    std::string result = "";
+
+    DIR *dir;
+    struct dirent *entry;
+    char path[1025];
+    struct stat info;
+    char *buf = 0;
+
+    char cwd[PATH_MAX];
+    static std::string currentDir;
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        currentDir = std::string(cwd) + uri;
+        std::cout << "Current working dir: " << currentDir << std::endl;
+        if ((dir = opendir((std::string(cwd) + uri).c_str())) != NULL) {
+            while ((entry = readdir(dir)) != NULL) {
+                if (entry->d_name[0] != '.') {
+                    std::cout << entry->d_name << std::endl;
+                    result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
+                    result += std::string(entry->d_name) + "";
+                    result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name) + "/";
+                    result += "</a>";
+                    result += "<span>-</span></div>\n";
+//                    strcpy(path, fn);
+//                    strcat(path, "/");
+//                    strcat(path, entry->d_name);
+//                    if (stat(path, &info) != 0)
+//                        fprintf(stderr, "stat() error on %s: %s\n", path,
+//                                strerror(errno));
+//                    else if (S_ISDIR(info.st_mode)) {
+//                        std::cout <<
+//                    }
+//
+                }
+            }
+            closedir(dir);
+//            std::cout << result << std::endl;
+        }
+    } else {
+        std::cout << "ERROR AUTOINDEX" << std::endl;
+    }
+    std::ofstream file(".tmp.html");
+//    file.open(".tmp.html", std::ios::out | std::ios::binary);
+    file << result;
+//    file.write((char *)&result, sizeof(std::string));
+    file.close();
+    return result;
+}
+
+//{
+//void traverse(char *fn, int indent) {
+//    DIR *dir;
+//    struct dirent *entry;
+//    int count;
+//    char path[1025];
+//    struct stat info;
+//
+//    for (count=0; count<indent; count++) printf("  ");
+//    printf("%s\n", fn);
+//
+//    if ((dir = opendir(fn)) == NULL)
+//        perror("opendir() error");
+//    else {
+//        while ((entry = readdir(dir)) != NULL) {
+//            if (entry->d_name[0] != '.') {
+//                strcpy(path, fn);
+//                strcat(path, "/");
+//                strcat(path, entry->d_name);
+//                if (stat(path, &info) != 0)
+//                    fprintf(stderr, "stat() error on %s: %s\n", path,
+//                            strerror(errno));
+//                else if (S_ISDIR(info.st_mode))
+//                    traverse(path, indent+1);
+//            }
+//        }
+//        closedir(dir);
+//    }
+//}
+//}
 
 void Response::fillHeaders(ClientSocket client, std::string fileName, int contentLength) {
     bodyMapPushBack("Server", client.getServer()->getName());
@@ -141,6 +229,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     std::string fileName;
     static bool headerFlag;
 
+    _autoindex = client.getServer()->getAutoindex();
     fileName = getFileName(client, request);
     file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (!headerFlag) {

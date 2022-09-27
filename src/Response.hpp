@@ -7,8 +7,14 @@
 
 # include <fstream>
 # include <sstream>
+# include <ios>
 # include <ctime>
 # include <sys/stat.h>
+
+#include <dirent.h>
+#include <errno.h> // - ? -
+#include <sys/types.h>
+#include <unistd.h>
 
 # include "Request.hpp"
 # include "ClientSocket.hpp"
@@ -33,6 +39,9 @@ private:
     std::string getFileName(ClientSocket client, Request request);
     void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);
     void        bodyMapPushBack(std::string key, std::string value);
+    std::string lsHtml(std::string uri);
+    bool        AIOnSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
+    bool        AIOffSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
 
 public:
     Response();
