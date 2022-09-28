@@ -39,7 +39,7 @@ private:
     std::string getFileName(ClientSocket client, Request request);
     void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);
     void        bodyMapPushBack(std::string key, std::string value);
-    std::string lsHtml(std::string uri);
+    bool        lsHtml(std::string uri);
     bool        AIOnSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
     bool        AIOffSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
 

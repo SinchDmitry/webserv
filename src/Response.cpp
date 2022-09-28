@@ -77,7 +77,6 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     }
     if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
-        std::cout << "ROOT in GETFILENAME " << root << std::endl;
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             if(!(*it)->getLocation().compare(requestURI)
                 || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
@@ -90,7 +89,6 @@ std::string Response::getFileName(ClientSocket client, Request request) {
             }
         }
     } else { // файл
-//		host = host.substr(0, host.length() - 1);
         if (request.getBody().count("Referer")) {
             referer = request.getBody().find("Referer")->second;
             found = referer.find(host) + host.length();
@@ -101,6 +99,12 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
                 std::string tmpRoot = (*it)->getLocation();
+                if (!_autoindex) {
+                    char cwd[PATH_MAX];
+                    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                        return UriDecode(cwd + requestURI);
+                    }
+                }
                 if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
                     std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
                     found = requestURI.find(root);
@@ -117,89 +121,52 @@ std::string Response::getFileName(ClientSocket client, Request request) {
             return UriDecode("." + requestURI);
         }
     }
-    lsHtml(root + requestURI);
-    return ".tmp.html";
+    if (lsHtml( requestURI)) {
+        return ".tmp.html";
+    } else {
+        char cwd[PATH_MAX];
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            return UriDecode(std::string(cwd) + requestURI.substr(0, requestURI.length() - 1));
+        } else {
+            return "null";
+        }
+    }
 }
 
-std::string Response::lsHtml(std::string uri) {
+bool Response::lsHtml(std::string uri) {
     std::string result = "";
-
     DIR *dir;
     struct dirent *entry;
-    char path[1025];
     struct stat info;
-    char *buf = 0;
-
     char cwd[PATH_MAX];
     static std::string currentDir;
+
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
         currentDir = std::string(cwd) + uri;
         std::cout << "Current working dir: " << currentDir << std::endl;
-        if ((dir = opendir((std::string(cwd) + uri).c_str())) != NULL) {
+        if ((dir = opendir(currentDir.c_str())) != NULL) {
             while ((entry = readdir(dir)) != NULL) {
                 if (entry->d_name[0] != '.') {
-                    std::cout << entry->d_name << std::endl;
-                    result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
-                    result += std::string(entry->d_name) + "";
-                    result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name) + "/";
-                    result += "</a>";
-                    result += "<span>-</span></div>\n";
-//                    strcpy(path, fn);
-//                    strcat(path, "/");
-//                    strcat(path, entry->d_name);
-//                    if (stat(path, &info) != 0)
-//                        fprintf(stderr, "stat() error on %s: %s\n", path,
-//                                strerror(errno));
-//                    else if (S_ISDIR(info.st_mode)) {
-//                        std::cout <<
-//                    }
-//
+                    if (stat(".", &info) != 0) {
+                        std::cout << "STAT error" << std::endl;
+                    } else if (S_ISDIR(info.st_mode)) {
+                        result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"./";
+                        result += std::string(entry->d_name) + "/";
+                        result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name) + "/";
+                        result += "</a><span>-</span></div>\n";
+                    }
                 }
             }
             closedir(dir);
-//            std::cout << result << std::endl;
+        } else {
+            return false;
         }
-    } else {
-        std::cout << "ERROR AUTOINDEX" << std::endl;
     }
     std::ofstream file(".tmp.html");
-//    file.open(".tmp.html", std::ios::out | std::ios::binary);
     file << result;
-//    file.write((char *)&result, sizeof(std::string));
     file.close();
-    return result;
+    return true;
 }
-
-//{
-//void traverse(char *fn, int indent) {
-//    DIR *dir;
-//    struct dirent *entry;
-//    int count;
-//    char path[1025];
-//    struct stat info;
-//
-//    for (count=0; count<indent; count++) printf("  ");
-//    printf("%s\n", fn);
-//
-//    if ((dir = opendir(fn)) == NULL)
-//        perror("opendir() error");
-//    else {
-//        while ((entry = readdir(dir)) != NULL) {
-//            if (entry->d_name[0] != '.') {
-//                strcpy(path, fn);
-//                strcat(path, "/");
-//                strcat(path, entry->d_name);
-//                if (stat(path, &info) != 0)
-//                    fprintf(stderr, "stat() error on %s: %s\n", path,
-//                            strerror(errno));
-//                else if (S_ISDIR(info.st_mode))
-//                    traverse(path, indent+1);
-//            }
-//        }
-//        closedir(dir);
-//    }
-//}
-//}
 
 void Response::fillHeaders(ClientSocket client, std::string fileName, int contentLength) {
     bodyMapPushBack("Server", client.getServer()->getName());
@@ -220,7 +187,11 @@ void Response::fillHeaders(ClientSocket client, std::string fileName, int conten
     bodyMapPushBack("Content-Length", std::to_string(contentLength));
     bodyMapPushBack("Version", _httpVersion);
     bodyMapPushBack("Connection", "Closed");
-    bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
+    if (_contentTypes.count(fileName.substr(fileName.rfind(".") + 1))) {
+        bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
+    } else {
+        bodyMapPushBack("Content-Type", "undefined");
+    }
 }
 
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
