@@ -147,12 +147,22 @@ bool Response::lsHtml(std::string uri) {
         if ((dir = opendir(currentDir.c_str())) != NULL) {
             while ((entry = readdir(dir)) != NULL) {
                 if (entry->d_name[0] != '.') {
-                    if (stat(".", &info) != 0) {
-                        std::cout << "STAT error" << std::endl;
+                    std::string nextDir = "." + uri + "/";
+//                    std::cout << "NEXT DIR : " << nextDir << std::endl;
+                    std::string tmp = nextDir + entry->d_name;
+                    std::cout << tmp << std::endl;
+                    if (stat(tmp.c_str(), &info) != 0) {
+                        std::cout << "STAT error : " << tmp.c_str() << std::endl;
                     } else if (S_ISDIR(info.st_mode)) {
                         result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"./";
                         result += std::string(entry->d_name) + "/";
                         result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name) + "/";
+                        result += "</a><span>-</span></div>\n";
+                    } else {
+                        std::cout << "mode : " << S_ISDIR(info.st_mode) << std::endl;
+                        result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"./";
+                        result += std::string(entry->d_name);
+                        result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name);
                         result += "</a><span>-</span></div>\n";
                     }
                 }
