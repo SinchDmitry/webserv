@@ -78,12 +78,12 @@ void Request::parseRequest(int clientSocket) {
         std::cout << "\tReferer -> " << _body.find("Referer")->second << std::endl;
     }
     std::cout << "\tMessage -> " << _message << std::endl;
-//    std::cout << "======= HTTP REQUEST =======" << std::endl;
-//    for (std::map<std::string, std::string>::iterator it = _body.begin();
-//         it != _body.end(); ++it) {
-//        std::cout << it->first << ": " << it->second << std::endl;
-//    }
-//    std::cout << "======= ============ =======" << std::endl;
+    std::cout << "======= HTTP REQUEST =======" << std::endl;
+    for (std::map<std::string, std::string>::iterator it = _body.begin();
+         it != _body.end(); ++it) {
+        std::cout << it->first << ": " << it->second << std::endl;
+    }
+    std::cout << "======= ============ =======" << std::endl;
 }
 
 std::list<std::string> Request::split(const std::string& str, std::string myDelim)

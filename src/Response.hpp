@@ -30,6 +30,7 @@ private:
     std::map<std::string, std::string>  _body;
     std::map<int, std::string>          _statusCodes;
     std::map<std::string, std::string>  _contentTypes;
+    std::string                         _response;
 
     void initStatusCodes();
     void initContentTypes();
