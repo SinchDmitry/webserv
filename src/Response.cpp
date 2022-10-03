@@ -68,13 +68,21 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     std::string requestURI = request.getBody().find("Request-URI")->second;
     std::string host = request.getBody().find("Host")->second;
     host = host.substr(0, host.length() - 1);
+    std::cout << "=====================" << std::endl;
     if (request.getBody().count("Referer")) {
         referer = request.getBody().find("Referer")->second;
         found = referer.find(host) + host.length();
         root = referer.substr(found, referer.length() - found - 1);
+        std::cout << "REFERER : " << referer << std::endl;
     } else {
         root = "";
     }
+    if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
+    if (root.empty()) { root = "/"; }
+    if (root.find(".") != std::string::npos) { root = root.substr(0, root.rfind("/")); }
+    std::cout << "REQUEST URI : " << requestURI << std::endl;
+    std::cout << "HOST : " << host << std::endl;
+    std::cout << "ROOT : " << root << std::endl;
     if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
         std::cout << "DIR" << std::endl;
@@ -93,22 +101,13 @@ std::string Response::getFileName(ClientSocket client, Request request) {
         }
     } else { // файл
         if (request.getBody().count("Referer")) {
-            referer = request.getBody().find("Referer")->second;
-            found = referer.find(host) + host.length();
-            root = referer.substr(found, referer.length() - 1 - found);
-
-            if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
-            if (root.empty()) { root = "/"; }
-
-            std::cout << "ROOT : " << root << std::endl;
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
                 std::string tmpRoot = (*it)->getLocation();
-                std::cout << "HERE" << std::endl;
                 if (!_autoindex) {
                     char cwd[PATH_MAX];
                     if (getcwd(cwd, sizeof(cwd)) != NULL) {
                         std::cout << "CWD " << cwd + requestURI << std::endl;
-                        return UriDecode(std::string(cwd) + "/" + root + "/" + requestURI);
+                        return UriDecode(std::string(cwd) + requestURI);
                     }
                 }
                 if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
@@ -156,7 +155,7 @@ bool Response::lsHtml(std::string uri) {
                     std::string nextDir = "." + uri + "/";
 //                    std::cout << "NEXT DIR : " << nextDir << std::endl;
                     std::string tmp = nextDir + entry->d_name;
-                    std::cout << tmp << std::endl;
+//                    std::cout << tmp << std::endl;
                     if (stat(tmp.c_str(), &info) != 0) {
                         std::cout << "STAT error : " << tmp.c_str() << std::endl;
                     } else if (S_ISDIR(info.st_mode)) {
@@ -165,7 +164,7 @@ bool Response::lsHtml(std::string uri) {
                         result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name) + "/";
                         result += "</a><span>-</span></div>\n";
                     } else {
-                        std::cout << "mode : " << S_ISDIR(info.st_mode) << std::endl;
+//                        std::cout << "mode : " << S_ISDIR(info.st_mode) << std::endl;
                         result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"./";
                         result += std::string(entry->d_name);
                         result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name);
