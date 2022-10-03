@@ -77,10 +77,13 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     }
     if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
+        std::cout << "DIR" << std::endl;
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+//                std::cout << "HERE " << (*it)->getLocation() << " ?? " << requestURI << std::endl;
             if(!(*it)->getLocation().compare(requestURI)
                 || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
                 if (_autoindex && (*it)->getConfigList().count("index")) {
+//                    std::cout << "ROOT : " << (*it)->getConfigList().find("root")->second << std::endl;
                     return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
                 } else {
                     lsHtml(root + requestURI);
@@ -97,12 +100,15 @@ std::string Response::getFileName(ClientSocket client, Request request) {
             if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
             if (root.empty()) { root = "/"; }
 
+            std::cout << "ROOT : " << root << std::endl;
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
                 std::string tmpRoot = (*it)->getLocation();
+                std::cout << "HERE" << std::endl;
                 if (!_autoindex) {
                     char cwd[PATH_MAX];
                     if (getcwd(cwd, sizeof(cwd)) != NULL) {
-                        return UriDecode(cwd + requestURI);
+                        std::cout << "CWD " << cwd + requestURI << std::endl;
+                        return UriDecode(std::string(cwd) + "/" + root + "/" + requestURI);
                     }
                 }
                 if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
@@ -146,7 +152,7 @@ bool Response::lsHtml(std::string uri) {
         std::cout << "Current working dir: " << currentDir << std::endl;
         if ((dir = opendir(currentDir.c_str())) != NULL) {
             while ((entry = readdir(dir)) != NULL) {
-                if (entry->d_name[0] != '.') {
+                if (entry->d_name[0] != '.' || (entry->d_name[0] == '.' && entry->d_name[1] == '.')) {
                     std::string nextDir = "." + uri + "/";
 //                    std::cout << "NEXT DIR : " << nextDir << std::endl;
                     std::string tmp = nextDir + entry->d_name;
