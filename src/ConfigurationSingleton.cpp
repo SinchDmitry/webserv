@@ -100,17 +100,21 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 	localHead.configListPushBack(downGrade);
 }
 /* debug function / recource printer */
-void recoursePrinterConf(LocationInfo* locationInf) {
-	std::cout << "-==GENERAL==-" << std::endl;
-	std::cout << "type : " << locationInf->getType() << std::endl;
-	std::cout << "lctn : " << locationInf->getLocation() << std::endl;
+void recoursePrinterConf(LocationInfo* locationInf, int level) {
+    std::string tabs = "";
+    for (int i = 0; i < level; i++) {
+        tabs += "  ";
+    }
+	std::cout << tabs << BLUE << locationInf->getType() << END << std::endl;
+	std::cout << tabs << "type : " << locationInf->getType() << std::endl;
+	std::cout << tabs << "lctn : " << locationInf->getLocation() << std::endl;
 	std::multimap<std::string, std::string> config = locationInf->getConfigList();
 	if (!config.empty()) {
-		std::cout << "-==DATA==-" << std::endl;
+		std::cout << tabs << VIOLET << "Parameters" << END << std::endl;
 		for (std::multimap<std::string, std::string>::iterator configIter = config.begin(); 
 			configIter != config.end(); ++configIter) {
-			std::cout << "parameter : " << configIter->first << 
-				" | value : " << configIter->second << std::endl;
+			std::cout << tabs << tabs << configIter->first <<
+				" :\t" << configIter->second << std::endl;
 		}
 	}
 	std::list<LocationInfo*> location = locationInf->getDownGradeList();
@@ -118,11 +122,11 @@ void recoursePrinterConf(LocationInfo* locationInf) {
 	if (!location.empty()) {
 		for (std::list<LocationInfo*>::iterator locationIter = location.begin(); 
 			locationIter != location.end(); ++locationIter) {
-				std::cout << "-==INCLUDE==-" << std::endl;
-				recoursePrinterConf(*locationIter);
+//				std::cout << "-==INCLUDE==-" << std::endl;
+				recoursePrinterConf(*locationIter, level + 1);
 		}
 	}
-	std::cout << "-==END of " << locationInf->getType() << " ==-" << std::endl;
+    std::cout << tabs << BLUE << locationInf->getType() << " end" << END << std::endl;
 }
 // */
 
@@ -139,7 +143,9 @@ void	ConfigurationSingleton::fileParse(std::list<std::string> inputFile) {
 	_tree = treeHead; // голову списка сохраняем, как голову дерева
 
 	/* debug / recourse printer for tree */
-	std::cout << "==PRINTER==" << std::endl;
-	recoursePrinterConf(_tree);
+	std::cout << VIOLET << "Recursive printer for configuration file" << END << std::endl;
+	recoursePrinterConf(_tree, 0);
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
 	// */
 }

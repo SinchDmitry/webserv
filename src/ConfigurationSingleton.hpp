@@ -2,6 +2,7 @@
 # define CONFIGURATIONSINGLETON_HPP
 
 # include "LocationInfo.hpp"
+# include "main.hpp"
 
 # include <iostream>
 

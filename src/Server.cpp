@@ -219,7 +219,9 @@ void    Server::createListSockets() {
     for (int i = 0; i < _numOfListenSocket; ++i) {
 		ListenSocket *newSocketFromConfig = new ListenSocket(*(listOfServerIter++)); // не забыть добавить делете
         int tmpFd = initListningSocket(*newSocketFromConfig);
-        std::cout << "Number  : " << i << " fd : " << tmpFd << std::endl;
+        std::stringstream info;
+        info << *newSocketFromConfig;
+        printMsg(i, tmpFd, "on descriptor ", info.str());
         if (tmpFd != SOCKET_ERROR) {
             _fds[i].fd = tmpFd;
             _fds[i].events = POLLIN;

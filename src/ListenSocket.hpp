@@ -3,7 +3,9 @@
 
 # include <fstream>
 # include <iostream>
+# include <sstream>
 # include "LocationInfo.hpp"
+# include "main.hpp"
 
 class ListenSocket {
 	private:
@@ -39,12 +41,9 @@ class ListenSocket {
 };
 
 static std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {
-	os	<< "================== start ==================" << std::endl
-		<< "Socket name : " << soc.getName() << std::endl 
-		<< "IP address : " << soc.getIP() << std::endl 
-		<< "Listen port : " << soc.getPort() << std::endl 
-		<< "Number of locations inside : " << soc.getLocationSize() << std::endl
-		<< "=================== end ===================" << std::endl;
+	os	<< " server " << END << soc.getName() << YELLOW
+		<< " started successfully: listening on " << END << soc.getIP()<< ":" << soc.getPort() << YELLOW
+		<< ", number of locations : " << END << soc.getLocationSize();
     return os;
 }
 
