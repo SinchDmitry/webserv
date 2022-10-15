@@ -9,17 +9,14 @@ NAME			= 	webserv
 #					Request.cpp \
 #					Response.cpp
 #
-#
 #OBJS			= $(SRCS:.cpp=.o)
 #DEP				= $(SRCS:.cpp=.d)
-#
 #
 CXX				= c++
 #
 RM				= rm -rf
 CXXFLAGS		= -MD -std=c++98 -I. -g
 ## -Wall -Wextra -Werror
-#
 #
 #all:			$(NAME)
 #
