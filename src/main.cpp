@@ -1,5 +1,5 @@
-#include "src/ConfigurationSingleton.hpp"
-#include "src/Server.hpp"
+#include "ConfigurationSingleton.hpp"
+#include "Server.hpp"
 
 int main() {
    Server testServer;
