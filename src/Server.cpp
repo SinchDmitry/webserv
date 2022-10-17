@@ -1,5 +1,11 @@
 #include "Server.hpp"
 
+Server::Server() {
+    memset(_fds, 0, sizeof(_fds));
+    char hostname[HOSTNAME_LEN];
+    _hostname = (gethostname(hostname, HOSTNAME_LEN) != -1) ? hostname : "\0";
+}
+
 /* debag funtions */
 void    printFdsArray(pollfd *fds, int nfds) {
     std::cout << std::endl << "=========== open client sockets ===========" << std::endl;
@@ -167,6 +173,9 @@ bool Server::setResponseByFd(int fd) {
 
 void Server::run() {
     /* заполняем струтуру в которой будем хранить информацию о состоянии установленных соединений */
+    std::cout << timestamp() << YELLOW << "Welcome to the webserver, (c) acristin, aarchiba, utygett. Host machine: "
+            << END << _hostname << YELLOW << ", configuration settings: " << END << "configuration.conf"
+            << std::endl << GRN << "To quit press CTRL+C" << END << std::endl;
     createListSockets();
     int nfds = _numOfListenSocket;
     while (true) {

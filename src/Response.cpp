@@ -19,18 +19,18 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
-std::string Response::replace(std::string src, std::string s1, std::string s2) {
-    std::string dest = "";
-    size_t index;
-    if (s1 == s2) { return src; }
-    index = src.find(s1);
-    while (index != std::string::npos) {
-        dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
-        src = dest;
-        index = src.find(s1);
-    }
-    return dest;
-}
+//std::string Response::replace(std::string src, std::string s1, std::string s2) {
+//    std::string dest = "";
+//    size_t index;
+//    if (s1 == s2) { return src; }
+//    index = src.find(s1);
+//    while (index != std::string::npos) {
+//        dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
+//        src = dest;
+//        index = src.find(s1);
+//    }
+//    return dest;
+//}
 
 std::string Response::UriDecode(const std::string & sSrc) {
     std::map<std::string, std::string> uriSymbs;

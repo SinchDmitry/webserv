@@ -12,18 +12,18 @@ ConfigurationSingleton*	ConfigurationSingleton::getInstance(void) {
 	return _instance;
 }
 
-std::list<std::string> ConfigurationSingleton::split(const std::string& str, std::string myDelim) {
-	std::list<std::string> dest;
-	char* delim = (char *)myDelim.c_str();
-    char* pTempStr = strdup(str.c_str());      
-    char* pWord = strtok(pTempStr, delim);       
-    while(pWord != NULL) {
-        dest.push_back(pWord);
-        pWord = strtok(NULL, delim);        
-    }
-    free(pTempStr);
-	return dest;
-}
+//std::list<std::string> ConfigurationSingleton::split(const std::string& str, std::string myDelim) {
+//	std::list<std::string> dest;
+//	char* delim = (char *)myDelim.c_str();
+//    char* pTempStr = strdup(str.c_str());
+//    char* pWord = strtok(pTempStr, delim);
+//    while(pWord != NULL) {
+//        dest.push_back(pWord);
+//        pWord = strtok(NULL, delim);
+//    }
+//    free(pTempStr);
+//	return dest;
+//}
 
 std::list<std::string>	ConfigurationSingleton::fileInit() {
 	std::ifstream file;

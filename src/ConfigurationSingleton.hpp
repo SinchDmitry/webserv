@@ -20,7 +20,7 @@ class ConfigurationSingleton {
 		~ConfigurationSingleton(void) {}
 
 		/* functions */
-		std::list<std::string>  split(const std::string& str, std::string myDelim);
+//		std::list<std::string>  split(const std::string& str, std::string myDelim);
 		std::list<std::string>	fileInit();
 
 		void	fileParse(std::list<std::string> inputFile);

@@ -12,6 +12,7 @@
 # include <sstream>
 # include <fstream>
 # include <cstring>
+//# include <winsock.h>
 
 # include "ConfigurationSingleton.hpp"
 # include "ListenSocket.hpp"
@@ -28,6 +29,7 @@ class Server
         int         				_numOfListenSocket;
 		std::list<ClientSocket*> 	_activeClients;
         std::list<ListenSocket*>    _activeServers;
+        std::string                 _hostname;
 
 		/* functions */
         bool            findInListenSockets(int fd);
@@ -40,7 +42,7 @@ class Server
         bool            setResponseByFd(int fd);
 
     public:
-        Server(){ memset(_fds, 0, sizeof(_fds)); }
+        Server();
 		~Server(){}
 
         int         initListningSocket(const ListenSocket&  serverInfo);

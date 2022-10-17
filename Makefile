@@ -35,11 +35,11 @@ CXXFLAGS		= -MD -std=c++98 -I. -g
 #
 #.PHONY:			all clean fclean re
 
-BLUE 	= \033[2;34m
-GRN		= \033[2;32m
-RED		= \033[2;31m
-VIOLET	= \033[2;35m
-YELLOW	= \033[2;33m
+BLUE 	= \033[1;34m
+GRN		= \033[1;32m
+RED		= \033[0;31m
+VIOLET	= \033[0;35m
+YELLOW	= \033[1;33m
 TICK	= \xE2\x9C\x94
 END		= \033[0m
 

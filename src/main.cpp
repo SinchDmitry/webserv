@@ -2,10 +2,36 @@
 #include "Server.hpp"
 #include "main.hpp"
 
+std::string replace(std::string src, std::string s1, std::string s2) {
+    std::string dest = "";
+    size_t index;
+    if (s1 == s2) { return src; }
+    index = src.find(s1);
+    while (index != std::string::npos) {
+        dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
+        src = dest;
+        index = src.find(s1);
+    }
+    return dest;
+}
+
 void ctrl_c_handler(int sig) {
     (void) sig;
     std::cout << "\r" << GRN << "Server was stopped by CTRL+C" << std::endl;
     exit(0);
+}
+
+std::list<std::string> split(const std::string& str, std::string myDelim) {
+    std::list<std::string> dest;
+    char* delim = (char *)myDelim.c_str();
+    char* pTempStr = strdup(str.c_str());
+    char* pWord = strtok(pTempStr, delim);
+    while(pWord != NULL) {
+        dest.push_back(pWord);
+        pWord = strtok(NULL, delim);
+    }
+    free(pTempStr);
+    return dest;
 }
 
 std::string timestamp() {
@@ -35,7 +61,7 @@ void printMsg(int srvNb, int clntSd, std::string msg1, std::string msg2)
         msg += "server[" + std::to_string(srvNb) + "]: ";
     msg += msg1;
     clntSd >= 0 ? msg += END + std::to_string(clntSd) + YELLOW : msg += " ";
-//    replaceAllStrings(msg2, "\n", "\n\t");
+//    msg2 = replace(msg2, "\n", "\n\t");
     msg += msg2 + END;
     std::cout << msg << std::endl;
 }

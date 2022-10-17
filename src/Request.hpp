@@ -13,6 +13,7 @@
 
 # include <sys/types.h>
 # include <sys/socket.h>
+# include "main.hpp"
 
 # define END_ERROR          1
 # define EMPTY_BUFFER		0
@@ -26,7 +27,7 @@ private:
     std::string                         _method;
     std::string                         _message;
 
-    std::list<std::string>  split(const std::string& str, std::string myDelim);
+//    std::list<std::string>  split(const std::string& str, std::string myDelim);
     bool                    readToBuffer( int clientSocket, bool isHeader );
 
 public:

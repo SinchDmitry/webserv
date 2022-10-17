@@ -72,16 +72,16 @@ ListenSocket&	ListenSocket::operator = (const ListenSocket& op) {
 	return *this;
 }
 
-std::list<std::string> ListenSocket::split(const std::string& str, std::string myDelim) {
-	std::list<std::string> dest;
-	char* delim = (char *)myDelim.c_str();
-    char* pTempStr = strdup(str.c_str());      
-    char* pWord = strtok(pTempStr, delim);       
-    while(pWord != NULL) {
-        dest.push_back(pWord);
-        pWord = strtok(NULL, delim);        
-    }
-    free(pTempStr);
-	return dest;
-}
+//std::list<std::string> ListenSocket::split(const std::string& str, std::string myDelim) {
+//	std::list<std::string> dest;
+//	char* delim = (char *)myDelim.c_str();
+//    char* pTempStr = strdup(str.c_str());
+//    char* pWord = strtok(pTempStr, delim);
+//    while(pWord != NULL) {
+//        dest.push_back(pWord);
+//        pWord = strtok(NULL, delim);
+//    }
+//    free(pTempStr);
+//	return dest;
+//}
 

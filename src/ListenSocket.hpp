@@ -18,7 +18,7 @@ class ListenSocket {
         bool                        _autoindex;
 
 		/* functions */
-		std::list<std::string>  split(const std::string& str, std::string myDelim);
+//		std::list<std::string>  split(const std::string& str, std::string myDelim);
 
 	public:
 		/* constructors */
