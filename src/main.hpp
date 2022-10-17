@@ -33,6 +33,9 @@ void                    ctrl_c_handler(int sig);
 std::string             timestamp();
 void                    printMsg(int fd, std::string msg1, std::string msg2);
 void                    printMsg(int srvNb, int clntSd, std::string msg1, std::string msg2);
+
+void                    printValue(std::string key, std::string value);
+
 std::list<std::string>  split(const std::string& str, std::string myDelim);
 std::string             replace(std::string src, std::string s1, std::string s2);
 #endif //MAIN_HPP

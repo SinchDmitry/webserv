@@ -10,12 +10,13 @@
 class ListenSocket {
 	private:
 		/* variables */
-		int 						_port;
-		std::string					_ip;
-		std::string					_name;
-		std::list<LocationInfo*>	_locations;
-        int                         _fd;
-        bool                        _autoindex;
+		int 						            _port;
+		std::string					            _ip;
+		std::string					            _name;
+		std::list<LocationInfo*>	            _locations;
+        std::multimap<std::string, std::string> _configList;
+        int                                     _fd;
+        bool                                    _autoindex;
 
 		/* functions */
 //		std::list<std::string>  split(const std::string& str, std::string myDelim);
@@ -29,13 +30,14 @@ class ListenSocket {
 		~ListenSocket() {}
 
 		/* getters */
-		int	getPort(void) const 				{ return _port; }
-		int getLocationSize(void) const 		{ return _locations.size(); }
-		const std::string&	getIP(void) const	{ return _ip; }
-		const std::string&	getName(void) const	{ return _name; }
-        const int getFd(void) const             { return _fd; }
-        const std::list<LocationInfo*>& getLocations(void) const { return _locations; }
-        const bool getAutoindex(void) const     { return _autoindex; }
+		int	getPort(void) const 				                            { return _port; }
+		int getLocationSize(void) const 		                            { return _locations.size(); }
+		const std::string&	getIP(void) const	                            { return _ip; }
+		const std::string&	getName(void) const	                            { return _name; }
+        const int getFd(void) const                                         { return _fd; }
+        const std::list<LocationInfo*>& getLocations(void) const            { return _locations; }
+        const std::multimap<std::string, std::string>& getConfigList(void) const { return _configList; };
+        const bool getAutoindex(void) const                                 { return _autoindex; }
 
         void setFd(const int fd) { _fd = fd; }
 };

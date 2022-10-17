@@ -66,6 +66,10 @@ void printMsg(int srvNb, int clntSd, std::string msg1, std::string msg2)
     std::cout << msg << std::endl;
 }
 
+void printValue(std::string key, std::string value) {
+    std::cout << BLUE << key << " : " << END << value << std::endl;
+}
+
 int main() {
     signal(SIGINT, ctrl_c_handler);
     printMsg(-1, "Starting server ...", "");

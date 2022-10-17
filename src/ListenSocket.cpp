@@ -37,9 +37,10 @@ ListenSocket::ListenSocket(LocationInfo* server)
 	// _ip(*(split(server->getConfigList().find("listen")->second, ":").begin())),
 	// _locations(server->getDownGradeList())
 {
-	std::multimap<std::string, std::string> mapWithServerInfo = server->getConfigList();
-    if (mapWithServerInfo.count("autoindex")) {
-        if (!mapWithServerInfo.find("autoindex")->second.compare("on")) {
+    _configList = server->getConfigList();
+//	std::multimap<std::string, std::string> mapWithServerInfo = server->getConfigList();
+    if (_configList.count("autoindex")) {
+        if (!_configList.find("autoindex")->second.compare("on")) {
             _autoindex = 1;
         } else {
             _autoindex = 0;
@@ -47,7 +48,7 @@ ListenSocket::ListenSocket(LocationInfo* server)
     } else {
         _autoindex = 0;
     }
-	_name = mapWithServerInfo.find("server_name")->second;
+	_name = _configList.find("server_name")->second;
 	std::list<std::string> splitForIpPort = split(server->getConfigList().find("listen")->second, ":");
 	std::list<std::string>::iterator IpPortIter = splitForIpPort.begin();
 	_ip = *(IpPortIter++);
@@ -68,6 +69,7 @@ ListenSocket&	ListenSocket::operator = (const ListenSocket& op) {
 		_ip = op._ip;
 		_name = op._name;
 		_locations = op._locations;
+        _configList = op._configList;
 	}
 	return *this;
 }

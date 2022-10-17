@@ -86,12 +86,16 @@ void ConfigurationSingleton::downgradeConfigList(LocationInfo& localHead,
 			std::list<std::string>::iterator tmpIter = ++infoString.begin();
 			downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
 		} else if (infoString.size() > 2) {
-			std::string stringUnion;
-			for (std::list<std::string>::iterator tmpIter = ++infoString.begin(); 
-				tmpIter != infoString.end(); ++tmpIter) {
-					stringUnion += *tmpIter;
-			}
-			// downGrade->configMapPushBack(*infoString.begin(), *tmpIter);
+//            printValue("infostring", *infoString.begin());
+            std::list<std::string>::iterator tmpIter = infoString.begin();
+			std::string stringUnion = *tmpIter++;
+            stringUnion += *tmpIter++;
+//			for (std::list<std::string>::iterator tmpIter = infoString.begin();
+//				tmpIter != infoString.end(); ++tmpIter) {
+//					stringUnion += *tmpIter;
+//			}
+//            printValue("union", stringUnion);
+            downGrade->configMapPushBack(stringUnion, *tmpIter);
 		} else {
 			std::cout << "here open : "<< *stringParserIter << " size : " << infoString.size() << std::endl;
 			exit(1);
@@ -114,7 +118,7 @@ void recoursePrinterConf(LocationInfo* locationInf, int level) {
 		for (std::multimap<std::string, std::string>::iterator configIter = config.begin(); 
 			configIter != config.end(); ++configIter) {
 			std::cout << tabs << tabs << configIter->first <<
-				" :\t" << configIter->second << std::endl;
+				" : " << configIter->second << std::endl;
 		}
 	}
 	std::list<LocationInfo*> location = locationInf->getDownGradeList();

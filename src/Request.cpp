@@ -71,19 +71,19 @@ void Request::parseRequest(int clientSocket) {
         }
         _message[_message.length()] = '\0';
     }
-    std::cout << "\tMethod -> " << _method << std::endl;
-    std::cout << "\tHost -> " << _body.find("Host")->second << std::endl;
-    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
-    if (_body.count("Referer")) {
-        std::cout << "\tReferer -> " << _body.find("Referer")->second << std::endl;
-    }
-    std::cout << "\tMessage -> " << _message << std::endl;
-    std::cout << "======= HTTP REQUEST =======" << std::endl;
+//    std::cout << "\tMethod -> " << _method << std::endl;
+//    std::cout << "\tHost -> " << _body.find("Host")->second << std::endl;
+//    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
+//    if (_body.count("Referer")) {
+//        std::cout << "\tReferer -> " << _body.find("Referer")->second << std::endl;
+//    }
+//    std::cout << "\tMessage -> " << _message << std::endl;
+    std::cout << VIOLET << "======= HTTP REQUEST =======" << END << std::endl;
     for (std::map<std::string, std::string>::iterator it = _body.begin();
          it != _body.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
+        std::cout << BLUE << it->first << ": " << END << it->second << std::endl;
     }
-    std::cout << "======= ============ =======" << std::endl;
+    std::cout << VIOLET << "======= ============ =======" << END << std::endl;
 }
 
 //std::list<std::string> Request::split(const std::string& str, std::string myDelim)

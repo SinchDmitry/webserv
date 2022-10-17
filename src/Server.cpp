@@ -69,7 +69,8 @@ int Server::addNewClientSocket(int &nfds, int i) {
 		perror("Error : TCP connection failure");
 		return SOCKET_ERROR;
 	}
-	std::cout << "Succsessful connection : " << _fds[i].fd << std::endl;
+//	std::cout << "Succsessful connection : " << _fds[i].fd << std::endl;
+    printMsg(i, clientSocket, "on descriptor ", " client successfully connected");
 	_fds[nfds].fd = clientSocket;
 	_fds[nfds].events = POLLIN;
 	_fds[nfds].revents = 0;
@@ -85,12 +86,13 @@ int Server::addNewClientSocket(int &nfds, int i) {
 }
 
 void Server::closeClientSocket(int &nfds, int &i) {
-	std::cout << "Connection closed : " << _fds[i].fd << std::endl;
+//	std::cout << "Connection closed : " << _fds[i].fd << " i : " << i - _numOfListenSocket << std::endl;
 	close(_fds[i].fd);
     for (std::list<ClientSocket *>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == _fds[i].fd) {
 //        if ((*it)->getFD() == _fds[i].fd
 //            if ((*it)->getRequest().getBody().find("Connection")->second.compare("keep-alive")) {
+                printMsg(i - _numOfListenSocket, (*it)->getFD(), "on descriptor ", " client disconnected");
                 _activeClients.erase(it);
 //            } else {
 //                return;

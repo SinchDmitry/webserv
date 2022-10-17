@@ -36,7 +36,6 @@ private:
     void initStatusCodes();
     void initContentTypes();
 
-//    std::string replace(std::string src, std::string s1, std::string s2);
     std::string UriDecode(const std::string & sSrc);
     std::string getFileName(ClientSocket client, Request request);
     void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);

@@ -19,19 +19,6 @@ Response &Response::operator=(const Response &src) {
 
 Response::~Response() {}
 
-//std::string Response::replace(std::string src, std::string s1, std::string s2) {
-//    std::string dest = "";
-//    size_t index;
-//    if (s1 == s2) { return src; }
-//    index = src.find(s1);
-//    while (index != std::string::npos) {
-//        dest = src.substr(0, index) + s2 + src.substr(index + s1.length());
-//        src = dest;
-//        index = src.find(s1);
-//    }
-//    return dest;
-//}
-
 std::string Response::UriDecode(const std::string & sSrc) {
     std::map<std::string, std::string> uriSymbs;
     uriSymbs["%20"] = " ";
@@ -60,82 +47,131 @@ std::string Response::UriDecode(const std::string & sSrc) {
     }
 }
 
+//std::string Response::getFileName(ClientSocket client, Request request) {
+//    std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
+//    std::string root;
+//    std::string referer;
+//    int found;
+//    std::string requestURI = request.getBody().find("Request-URI")->second;
+//    std::string host = request.getBody().find("Host")->second;
+//    host = host.substr(0, host.length() - 1);
+////    std::cout << "=====================" << std::endl;
+//    if (request.getBody().count("Referer")) {
+//        referer = request.getBody().find("Referer")->second;
+//        found = referer.find(host) + host.length();
+//        root = referer.substr(found, referer.length() - found - 1);
+////        std::cout << "REFERER : " << referer << std::endl;
+//    } else {
+//        root = "";
+//    }
+//    if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
+//    if (root.empty()) { root = "/"; }
+//    if (root.find(".") != std::string::npos) { root = root.substr(0, root.rfind("/")); }
+////    std::cout << "REQUEST URI : " << requestURI << std::endl;
+////    std::cout << "HOST : " << host << std::endl;
+////    std::cout << "ROOT : " << root << std::endl;
+//    if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
+//        || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
+////        std::cout << "DIR" << std::endl;
+//        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+////                std::cout << "HERE " << (*it)->getLocation() << " ?? " << requestURI << std::endl;
+//            if(!(*it)->getLocation().compare(requestURI)
+//                || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
+//                if (_autoindex && (*it)->getConfigList().count("index")) {
+////                    std::cout << "ROOT : " << (*it)->getConfigList().find("root")->second << std::endl;
+//                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
+//                } else {
+//                    lsHtml(root + requestURI);
+//                    return ".tmp.html";
+//                }
+//            }
+//        }
+//    } else { // файл
+//        if (request.getBody().count("Referer")) {
+//            for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+//                std::string tmpRoot = (*it)->getLocation();
+//                if (!_autoindex) {
+//                    char cwd[PATH_MAX];
+//                    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+//                        std::cout << "CWD " << cwd + requestURI << std::endl;
+//                        return UriDecode(std::string(cwd) + requestURI);
+//                    }
+//                }
+//                if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
+//                    std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
+//                    found = requestURI.find(root);
+//                    if (found != std::string::npos) {
+//                        if (rootFromMap.rfind("/") == rootFromMap.length() - 1 && requestURI.substr(found + root.length()).find("/") == 0) { found++ ; }
+//                        std::string fileName = "./" + rootFromMap + requestURI.substr(found + root.length());
+//                        return UriDecode(fileName);
+//                    } else {
+//                        return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + requestURI);
+//                    }
+//                }
+//            }
+//        } else {
+//            return UriDecode("." + requestURI);
+//        }
+//    }
+//    if (lsHtml( requestURI)) {
+//        return ".tmp.html";
+//    } else {
+//        char cwd[PATH_MAX];
+//        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+//            return UriDecode(std::string(cwd) + requestURI.substr(0, requestURI.length() - 1));
+//        } else {
+//            return "null";
+//        }
+//    }
+//}
+
 std::string Response::getFileName(ClientSocket client, Request request) {
+    std::string fileName;
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
-    std::string root;
-    std::string referer;
-    int found;
-    std::string requestURI = request.getBody().find("Request-URI")->second;
+    const ListenSocket* server = client.getServer();
+
     std::string host = request.getBody().find("Host")->second;
-    host = host.substr(0, host.length() - 1);
-    std::cout << "=====================" << std::endl;
+    std::string root = client.getServer()->getConfigList().find("root")->second;
+    std::string requestURI = request.getBody().find("Request-URI")->second;
+
+    std::string referer;
     if (request.getBody().count("Referer")) {
         referer = request.getBody().find("Referer")->second;
-        found = referer.find(host) + host.length();
-        root = referer.substr(found, referer.length() - found - 1);
-        std::cout << "REFERER : " << referer << std::endl;
+        referer = referer.substr(referer.find(host.substr(0, host.length() - 1)) + host.length() - 1);
+
     } else {
-        root = "";
+        referer = "";
     }
-    if (root.rfind("/") == root.length() - 1) { root = root.substr(0, root.length() - 1); }
-    if (root.empty()) { root = "/"; }
-    if (root.find(".") != std::string::npos) { root = root.substr(0, root.rfind("/")); }
-    std::cout << "REQUEST URI : " << requestURI << std::endl;
-    std::cout << "HOST : " << host << std::endl;
-    std::cout << "ROOT : " << root << std::endl;
-    if (requestURI.rfind("/") == requestURI.length() - 1 // last "/" => directory
-        || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) { // в подстроке после последнего "/" нет точки => не файл
-        std::cout << "DIR" << std::endl;
-        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-//                std::cout << "HERE " << (*it)->getLocation() << " ?? " << requestURI << std::endl;
-            if(!(*it)->getLocation().compare(requestURI)
-                || !(*it)->getLocation().compare(requestURI.substr(0, requestURI.length() - 1))) { // ищем в локациях сервера совпадающую с Request-URI
-                if (_autoindex && (*it)->getConfigList().count("index")) {
-//                    std::cout << "ROOT : " << (*it)->getConfigList().find("root")->second << std::endl;
-                    return UriDecode("./" + (*it)->getConfigList().find("root")->second + (*it)->getConfigList().find("index")->second);
-                } else {
-                    lsHtml(root + requestURI);
-                    return ".tmp.html";
-                }
-            }
-        }
-    } else { // файл
-        if (request.getBody().count("Referer")) {
+
+    if ((requestURI.rfind("/") == requestURI.length() - 1)
+        || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) {
+        if (_autoindex) {
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-                std::string tmpRoot = (*it)->getLocation();
-                if (!_autoindex) {
-                    char cwd[PATH_MAX];
-                    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-                        std::cout << "CWD " << cwd + requestURI << std::endl;
-                        return UriDecode(std::string(cwd) + requestURI);
-                    }
-                }
-                if(!tmpRoot.compare(root)) { // ищем в локациях сервера совпадающую с Request-URI
-                    std::string rootFromMap = (*it)->getConfigList().find("root")->second.substr();
-                    found = requestURI.find(root);
-                    if (found != std::string::npos) {
-                        if (rootFromMap.rfind("/") == rootFromMap.length() - 1 && requestURI.substr(found + root.length()).find("/") == 0) { found++ ; }
-                        std::string fileName = "./" + rootFromMap + requestURI.substr(found + root.length());
-                        return UriDecode(fileName);
-                    } else {
-                        return UriDecode("./" + rootFromMap.substr(0, rootFromMap.length() - 1) + requestURI);
-                    }
+                if (!(*it)->getLocation().compare(requestURI)) {
+                    return root + "/" + (*it)->getConfigList().find("index")->second;
                 }
             }
+            return root + "/" + server->getConfigList().find("error404")->second;
         } else {
-            return UriDecode("." + requestURI);
+            return root + "/" + server->getConfigList().find("error404")->second;
         }
-    }
-    if (lsHtml( requestURI)) {
-        return ".tmp.html";
     } else {
-        char cwd[PATH_MAX];
-        if (getcwd(cwd, sizeof(cwd)) != NULL) {
-            return UriDecode(std::string(cwd) + requestURI.substr(0, requestURI.length() - 1));
-        } else {
-            return "null";
+        std::string refPath = referer.substr(0, referer.rfind("/") + 1);
+        printValue("refPath", refPath);
+        printValue("requestURI", requestURI);
+        return root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length());
+    }
+
+    printValue("referer", referer);
+//    printValue("root", root);
+//    std::string root = client.getServer().
+    for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+        if (!(*it)->getLocation().compare(requestURI)) {
+            return root + "/" + (*it)->getConfigList().find("index")->second;
         }
     }
+
+    return fileName;
 }
 
 bool Response::lsHtml(std::string uri) {
@@ -219,7 +255,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     fileName = getFileName(client, request);
     file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (!headerFlag) {
-        std::cout << "\t\tFileName -> " << fileName << std::endl;
+        std::cout << RED << "FileName : " << END << fileName << std::endl;
         if (request.getBody().count("Transfer-Encoding")) {
             std::cout << request.getBody().find("Transfer-Encoding")->second << std::endl;
         }
@@ -231,7 +267,6 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
             _status = std::make_pair(200, _statusCodes.find(200)->second);
         }
 
-        std::cout << "ok here" << std::endl;
         fillHeaders(client, fileName, file.tellg());
         response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
         for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
