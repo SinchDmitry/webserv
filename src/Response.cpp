@@ -147,27 +147,33 @@ std::string Response::getFileName(ClientSocket client, Request request) {
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
                 if (!(*it)->getLocation().compare(requestURI)) {
                     std::string localRoot = (*it)->getConfigList().count("root") ? (*it)->getConfigList().find("root")->second : "";
-                    return root + "/" + localRoot + "/" + (*it)->getConfigList().find("index")->second;
+                    return UriDecode(root + "/" + localRoot + "/" + (*it)->getConfigList().find("index")->second);
                 }
             }
-            return root + "/" + server->getConfigList().find("error404")->second;
+            return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
         } else {
-            return root + "/" + server->getConfigList().find("error404")->second;
+            lsHtml(requestURI);
+            return "resources/.listing.html";
         }
     } else {
+        if (!_autoindex) {
+            char cwd[PATH_MAX];
+            if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                return UriDecode(std::string(cwd) + requestURI);
+            } else {
+                return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
+            }
+        }
         std::string refPath = referer.substr(0, referer.rfind("/") + 1);
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             if (!(*it)->getLocation().compare(referer.substr(0, referer.length() - 1))) {
-                printValue("location", (*it)->getLocation());
-                printValue("referer", referer);
-                printValue("location", "referer");
-                return root + "/" + referer.substr(0, referer.length() - 1) + "/" + requestURI;
+                return UriDecode(root + "/" + referer.substr(0, referer.length() - 1) + "/" + requestURI);
             }
         }
         if (requestURI.find(refPath) != std::string::npos) {
-            return root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length());
+            return UriDecode(root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length()));
         } else {
-            return root + "/" + requestURI;
+            return UriDecode(root + "/" + requestURI);
         }
     }
 }
@@ -182,7 +188,7 @@ bool Response::lsHtml(std::string uri) {
 
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
         currentDir = std::string(cwd) + uri;
-        std::cout << "Current working dir: " << currentDir << std::endl;
+//        std::cout << "Current working dir: " << currentDir << std::endl;
         if ((dir = opendir(currentDir.c_str())) != NULL) {
             while ((entry = readdir(dir)) != NULL) {
                 if (entry->d_name[0] != '.' || (entry->d_name[0] == '.' && entry->d_name[1] == '.')) {
@@ -211,7 +217,7 @@ bool Response::lsHtml(std::string uri) {
             return false;
         }
     }
-    std::ofstream file(".tmp.html");
+    std::ofstream file("resources/.listing.html");
     file << result;
     file.close();
     return true;
