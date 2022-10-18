@@ -44,6 +44,12 @@ private:
     bool        AIOnSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
     bool        AIOffSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
 
+    struct both_slashes {
+        bool operator()(char a, char b) const {
+            return a == '/' && b == '/';
+        }
+    };
+
 public:
     Response();
     Response(const Response& copy);

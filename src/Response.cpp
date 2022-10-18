@@ -126,7 +126,6 @@ std::string Response::UriDecode(const std::string & sSrc) {
 //}
 
 std::string Response::getFileName(ClientSocket client, Request request) {
-    std::string fileName;
     std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
     const ListenSocket* server = client.getServer();
 
@@ -138,7 +137,6 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     if (request.getBody().count("Referer")) {
         referer = request.getBody().find("Referer")->second;
         referer = referer.substr(referer.find(host.substr(0, host.length() - 1)) + host.length() - 1);
-
     } else {
         referer = "";
     }
@@ -148,7 +146,8 @@ std::string Response::getFileName(ClientSocket client, Request request) {
         if (_autoindex) {
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
                 if (!(*it)->getLocation().compare(requestURI)) {
-                    return root + "/" + (*it)->getConfigList().find("index")->second;
+                    std::string localRoot = (*it)->getConfigList().count("root") ? (*it)->getConfigList().find("root")->second : "";
+                    return root + "/" + localRoot + "/" + (*it)->getConfigList().find("index")->second;
                 }
             }
             return root + "/" + server->getConfigList().find("error404")->second;
@@ -157,21 +156,20 @@ std::string Response::getFileName(ClientSocket client, Request request) {
         }
     } else {
         std::string refPath = referer.substr(0, referer.rfind("/") + 1);
-        printValue("refPath", refPath);
-        printValue("requestURI", requestURI);
-        return root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length());
-    }
-
-    printValue("referer", referer);
-//    printValue("root", root);
-//    std::string root = client.getServer().
-    for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-        if (!(*it)->getLocation().compare(requestURI)) {
-            return root + "/" + (*it)->getConfigList().find("index")->second;
+        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+            if (!(*it)->getLocation().compare(referer.substr(0, referer.length() - 1))) {
+                printValue("location", (*it)->getLocation());
+                printValue("referer", referer);
+                printValue("location", "referer");
+                return root + "/" + referer.substr(0, referer.length() - 1) + "/" + requestURI;
+            }
+        }
+        if (requestURI.find(refPath) != std::string::npos) {
+            return root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length());
+        } else {
+            return root + "/" + requestURI;
         }
     }
-
-    return fileName;
 }
 
 bool Response::lsHtml(std::string uri) {
@@ -253,6 +251,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 
     _autoindex = client.getServer()->getAutoindex();
     fileName = getFileName(client, request);
+    fileName.erase(std::unique(fileName.begin(), fileName.end(), both_slashes()), fileName.end());
     file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (!headerFlag) {
         std::cout << RED << "FileName : " << END << fileName << std::endl;
