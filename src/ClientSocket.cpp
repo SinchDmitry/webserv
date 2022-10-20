@@ -6,7 +6,11 @@ ClientSocket::ClientSocket(int fd, ListenSocket* socket) :
 	_outputResponse(new Response()), 
 	_readCounter(0) {}
 
-ClientSocket::~ClientSocket() {}
+ClientSocket::~ClientSocket() {
+
+//    delete _outputResponse;
+//    delete &_inputRequest;
+}
 
 ClientSocket& ClientSocket::operator = (const ClientSocket& op) {
 	if (this != &op) {

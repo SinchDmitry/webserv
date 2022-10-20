@@ -16,6 +16,7 @@ class ListenSocket {
 		std::list<LocationInfo*>	            _locations;
         std::multimap<std::string, std::string> _configList;
         int                                     _fd;
+        int                                     _nb;
         bool                                    _autoindex;
 
 		/* functions */
@@ -35,11 +36,13 @@ class ListenSocket {
 		const std::string&	getIP(void) const	                            { return _ip; }
 		const std::string&	getName(void) const	                            { return _name; }
         const int getFd(void) const                                         { return _fd; }
+        const int getNb(void) const                                         { return _nb; }
         const std::list<LocationInfo*>& getLocations(void) const            { return _locations; }
         const std::multimap<std::string, std::string>& getConfigList(void) const { return _configList; };
         const bool getAutoindex(void) const                                 { return _autoindex; }
 
         void setFd(const int fd) { _fd = fd; }
+        void setNb(const int nb) { _nb = nb; }
 };
 
 static std::ostream& operator << (std::ostream& os, const ListenSocket& soc) {

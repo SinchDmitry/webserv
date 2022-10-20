@@ -45,6 +45,8 @@ class Server
         Server();
 		~Server(){}
 
+        const int   getNumOfListenSocket(void) const { return _numOfListenSocket; };
+
         int         initListningSocket(const ListenSocket&  serverInfo);
         int         initPoll(int listningSocket);
         void        run();

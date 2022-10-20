@@ -92,7 +92,7 @@ void Server::closeClientSocket(int &nfds, int &i) {
         if ((*it)->getFD() == _fds[i].fd) {
 //        if ((*it)->getFD() == _fds[i].fd
 //            if ((*it)->getRequest().getBody().find("Connection")->second.compare("keep-alive")) {
-                printMsg(i - _numOfListenSocket, (*it)->getFD(), "on descriptor ", " client disconnected");
+                printMsg((*it)->getServer()->getNb(), (*it)->getFD(), "on descriptor ", " client disconnected");
                 _activeClients.erase(it);
 //            } else {
 //                return;
@@ -236,6 +236,7 @@ void    Server::createListSockets() {
         if (tmpFd != SOCKET_ERROR) {
             _fds[i].fd = tmpFd;
             _fds[i].events = POLLIN;
+            newSocketFromConfig->setNb(i);
             newSocketFromConfig->setFd(tmpFd);
         }
         _activeServers.push_back(newSocketFromConfig);

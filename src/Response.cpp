@@ -143,37 +143,47 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 
     if ((requestURI.rfind("/") == requestURI.length() - 1)
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) {
+        // на вход подается директория
         if (_autoindex) {
             for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
                 if (!(*it)->getLocation().compare(requestURI)) {
                     std::string localRoot = (*it)->getConfigList().count("root") ? (*it)->getConfigList().find("root")->second : "";
                     return UriDecode(root + "/" + localRoot + "/" + (*it)->getConfigList().find("index")->second);
+                    // корень файлов сервера + корень локации + индекс (если автоиндекс включен и локация существует)
                 }
             }
+            // локации не существует - 404
             return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
         } else {
             lsHtml(requestURI);
             return "resources/.listing.html";
+            // автоиндекс выключен
         }
     } else {
+        // на вход подается файл
         if (!_autoindex) {
             char cwd[PATH_MAX];
             if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                // автоиндекс выключен, ищем файлы в текущей директории
                 return UriDecode(std::string(cwd) + requestURI);
             } else {
+                // автоиндекс выключен, файла не существует - 404
                 return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
             }
         }
-        std::string refPath = referer.substr(0, referer.rfind("/") + 1);
+//        std::string refPath = referer.substr(0, referer.rfind("/") + 1);
         for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
             if (!(*it)->getLocation().compare(referer.substr(0, referer.length() - 1))) {
+                // корень файлов сервера + путь до запрашиваемого файла + название файла (если локация существует)
                 return UriDecode(root + "/" + referer.substr(0, referer.length() - 1) + "/" + requestURI);
             }
         }
-        if (requestURI.find(refPath) != std::string::npos) {
-            return UriDecode(root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length()));
-        } else {
-            return UriDecode(root + "/" + requestURI);
+        // автоиндекс включен, файла не существует - 404
+        return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
+//        if (requestURI.find(refPath) != std::string::npos) {
+//            return UriDecode(root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length()));
+//        } else {
+//            return UriDecode(root + "/" + requestURI);
         }
     }
 }
@@ -186,16 +196,29 @@ bool Response::lsHtml(std::string uri) {
     char cwd[PATH_MAX];
     static std::string currentDir;
 
+    result += "<!DOCTYPE html>\n"
+              "<html>\n"
+              "\n"
+              "<head>\n"
+              "\t<meta charset=\"utf-8\">\n"
+              "\t<title>\n"
+              "\t\tWebServ\n"
+              "\t</title>\n"
+              "\t<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT\" crossorigin=\"anonymous\">\n"
+              "\t<link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap\" rel=\"stylesheet\">\n"
+              "</head>\n"
+              "\n"
+              "<body style=\"font-family: 'Montserrat';\">\n"
+              "<div class=\"container m-4 p-4\">\n"
+              "<div class=\"row justify-content-center\">\n";
+
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
         currentDir = std::string(cwd) + uri;
-//        std::cout << "Current working dir: " << currentDir << std::endl;
         if ((dir = opendir(currentDir.c_str())) != NULL) {
             while ((entry = readdir(dir)) != NULL) {
                 if (entry->d_name[0] != '.' || (entry->d_name[0] == '.' && entry->d_name[1] == '.')) {
                     std::string nextDir = "." + uri + "/";
-//                    std::cout << "NEXT DIR : " << nextDir << std::endl;
                     std::string tmp = nextDir + entry->d_name;
-//                    std::cout << tmp << std::endl;
                     if (stat(tmp.c_str(), &info) != 0) {
                         std::cout << "STAT error : " << tmp.c_str() << std::endl;
                     } else if (S_ISDIR(info.st_mode)) {
@@ -204,7 +227,6 @@ bool Response::lsHtml(std::string uri) {
                         result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name) + "/";
                         result += "</a><span>-</span></div>\n";
                     } else {
-//                        std::cout << "mode : " << S_ISDIR(info.st_mode) << std::endl;
                         result += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"./";
                         result += std::string(entry->d_name);
                         result += "\" style=\"display: inline-block;width: 70%;\">" + std::string(entry->d_name);
@@ -217,6 +239,10 @@ bool Response::lsHtml(std::string uri) {
             return false;
         }
     }
+    result += "</div>\n"
+              "</div>\n"
+              "</body>\n"
+              "</html>";
     std::ofstream file("resources/.listing.html");
     file << result;
     file.close();
@@ -278,6 +304,7 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
             response << it->first << ": " << it->second << "\r\n";
         }
         response << "\r\n";
+        std::cout << RED << "======= HTTP RESPONSE =======\n" << END << response.str() << RED << "======= ============= =======\n" << END << std::endl;
         if (send(clientSocket, response.str().c_str(), response.str().length(), MSG_NOSIGNAL) == SOCKET_ERROR) {
             perror("Error : send message failure");
             exit(SOCKET_ERROR); // correct it
@@ -301,7 +328,8 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     readCounter += READ_BUFFER_SIZE;
 	//	std::cout << "counter pos : " << file.tellg() << std::endl;
     if (file.eof()) {
-        std::cout << "I'M DONE" << std::endl;
+        printMsg(client.getServer()->getNb(), clientSocket, "on descriptor ", " successfully send file: " + fileName);
+//        std::cout << "I'M DONE" << std::endl;
         headerFlag = false;
         file.clear();
         file.close();
