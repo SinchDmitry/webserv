@@ -86,17 +86,11 @@ int Server::addNewClientSocket(int &nfds, int i) {
 }
 
 void Server::closeClientSocket(int &nfds, int &i) {
-//	std::cout << "Connection closed : " << _fds[i].fd << " i : " << i - _numOfListenSocket << std::endl;
 	close(_fds[i].fd);
     for (std::list<ClientSocket *>::const_iterator it = _activeClients.begin(); it != _activeClients.end(); it++) {
         if ((*it)->getFD() == _fds[i].fd) {
-//        if ((*it)->getFD() == _fds[i].fd
-//            if ((*it)->getRequest().getBody().find("Connection")->second.compare("keep-alive")) {
-                printMsg((*it)->getServer()->getNb(), (*it)->getFD(), "on descriptor ", " client disconnected");
-                _activeClients.erase(it);
-//            } else {
-//                return;
-//            }
+            printMsg((*it)->getServer()->getNb(), (*it)->getFD(), "on descriptor ", " client disconnected");
+            _activeClients.erase(it);
         }
     }
 	for (int j = i; j < nfds - 1; j++) {
@@ -109,9 +103,11 @@ void Server::closeClientSocket(int &nfds, int &i) {
 int Server::waitForPoll(int nfds) {
 	int pollStatus = poll(_fds, nfds, -1);
 	if (pollStatus == -1) {
-		perror("Error : poll failure");
+        printMsg(-1, -1, RED, "server error: poll failure", "");
+//		perror("Error : poll failure");
 	} else if (!pollStatus) {
-		perror("Error : poll timeout");
+        printMsg(-1, -1, RED, "server error: poll timeout", "");
+//		perror("Error : poll timeout");
 	}
 	return pollStatus;
 }
@@ -203,12 +199,14 @@ void Server::run() {
                 }
                 _fds[i].revents = 0;
             } else if (_fds[i].revents != POLLOUT && _fds[i].revents != POLLIN ) {
-				//debug ! ! ! ! 
-				std::cout << "revent : " << _fds[i].revents << std::endl;
+				//debug ! ! ! !
+                printMsg(-1, _fds[i].revents, VIOLET, "server error: close client socket with revent: ", "");
+//				std::cout << "revent : " << _fds[i].revents << std::endl;
 				//debug ! ! ! !
                 closeClientSocket(nfds, i);
             } else {
-                perror("Error : wrong revent");
+                printMsg(-1, -1, RED, "server error: wrong revent", "");
+//                perror("Error : wrong revent");
                 break;
             }
         }

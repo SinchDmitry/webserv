@@ -144,21 +144,22 @@ std::string Response::getFileName(ClientSocket client, Request request) {
     if ((requestURI.rfind("/") == requestURI.length() - 1)
         || requestURI.substr(requestURI.rfind("/") + 1).find(".") == std::string::npos) {
         // на вход подается директория
-        if (_autoindex) {
-            for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
-                if (!(*it)->getLocation().compare(requestURI)) {
-                    std::string localRoot = (*it)->getConfigList().count("root") ? (*it)->getConfigList().find("root")->second : "";
+        for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+            // если директория есть среди локаций сервера
+            if (!(*it)->getLocation().compare(requestURI)) {
+                std::string localRoot = (*it)->getConfigList().count("root") ? (*it)->getConfigList().find("root")->second : "";
+                if (_autoindex) {
+                    // если автоиндекс включен: подтягиваем индекс из конфига
                     return UriDecode(root + "/" + localRoot + "/" + (*it)->getConfigList().find("index")->second);
-                    // корень файлов сервера + корень локации + индекс (если автоиндекс включен и локация существует)
+                } else {
+                    // иначе: делаем временный html файл с листингом
+                    lsHtml(requestURI);
+                    return "resources/.listing.html";
                 }
             }
-            // локации не существует - 404
-            return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
-        } else {
-            lsHtml(requestURI);
-            return "resources/.listing.html";
-            // автоиндекс выключен
         }
+        // директории нет среди локаций сервера: 404
+        return UriDecode(root + "/" + server->getConfigList().find("error404")->second);
     } else {
         // на вход подается файл
         if (!_autoindex) {
@@ -184,7 +185,7 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 //            return UriDecode(root + "/" + requestURI.substr(requestURI.find(refPath) + refPath.length()));
 //        } else {
 //            return UriDecode(root + "/" + requestURI);
-        }
+//        }
     }
 }
 
@@ -318,8 +319,9 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     file.read(&buff[0], READ_BUFFER_SIZE);
 	//	std::cout << "socket : " << clientSocket << " | send : " << send(clientSocket, buff, READ_BUFFER_SIZE, 0)  << std::endl;
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
-        std::cout << "Error " << fileName << std::endl;
-        perror("Error : send message failure");
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " failed send file: " + fileName);
+//        std::cout << "Error " << fileName << std::endl;
+//        perror("Error : send message failure");
         file.close();
         file.clear();
 		return false;

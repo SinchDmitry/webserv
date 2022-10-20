@@ -66,6 +66,18 @@ void printMsg(int srvNb, int clntSd, std::string msg1, std::string msg2)
     std::cout << msg << std::endl;
 }
 
+void printMsg(int srvNb, int clntSd, std::string COLOR, std::string msg1, std::string msg2)
+{
+    std::string msg = END + timestamp() + YELLOW;
+    if (srvNb >= 0)
+        msg += "server[" + std::to_string(srvNb) + "]: ";
+    msg += END + COLOR + msg1;
+    clntSd >= 0 ? msg += END + std::to_string(clntSd) + COLOR : msg += " ";
+//    msg2 = replace(msg2, "\n", "\n\t");
+    msg += msg2 + END;
+    std::cout << msg << std::endl;
+}
+
 void printValue(std::string key, std::string value) {
     std::cout << BLUE << key << " : " << END << value << std::endl;
 }
