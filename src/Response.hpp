@@ -43,6 +43,8 @@ private:
     bool        lsHtml(std::string uri);
     bool        AIOnSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
     bool        AIOffSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
+    int         isValidPath(std::string path);
+    void        removeSlashes(std::string &path);
 
     struct both_slashes {
         bool operator()(char a, char b) const {
