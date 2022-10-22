@@ -237,12 +237,24 @@ void Response::fillHeaders(ClientSocket client, std::string fileName, int conten
 }
 
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
-    std::stringstream response;
+    _autoindex = client.getServer()->getAutoindex();
+
+    if (!request.getMethod().compare("GET")) {
+        printValue("Method", "GET");
+        return GETResponse(client, clientSocket, request, readCounter);
+    } else if (!request.getMethod().compare("POST")) {
+        printValue("Method", "POST");
+        return false;
+    } else {
+        return false;
+    }
+}
+
+bool Response::GETResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {std::stringstream response;
     static std::ifstream file;
     std::string fileName;
     static bool headerFlag;
 
-    _autoindex = client.getServer()->getAutoindex();
     fileName = getFileName(client, request);
     fileName.erase(std::unique(fileName.begin(), fileName.end(), both_slashes()), fileName.end());
     file.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
@@ -251,8 +263,8 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         if (request.getBody().count("Transfer-Encoding")) {
             std::cout << request.getBody().find("Transfer-Encoding")->second << std::endl;
         }
-		if (file.fail()) {
-			std::cout << fileName << std::endl;
+        if (file.fail()) {
+            std::cout << fileName << std::endl;
             perror("Error : can't open input file");
             _status = std::make_pair(404, _statusCodes.find(404)->second);
         } else {
@@ -275,13 +287,13 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
 
     file.seekg(readCounter);
     /* порционная отправка ответа */
-	std::string buff(READ_BUFFER_SIZE, '0');
+    std::string buff(READ_BUFFER_SIZE, '0');
     file.read(&buff[0], READ_BUFFER_SIZE);
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
         printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " failed send file: " + fileName);
         file.close();
         file.clear();
-		return false;
+        return false;
     }
     readCounter += READ_BUFFER_SIZE;
     if (file.eof()) {

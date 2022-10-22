@@ -16,8 +16,8 @@
 			<div class="navbar-nav">
 				<a class="nav-link" href="../">Галя, отмена</a>
 				<a class="nav-link" href="../document/">Ссылка</a>
-				<a class="nav-link">Редирект</a>
-				<a class="nav-link">Еще&nbsp;редирект</a>
+				<a class="nav-link" href="https://ya.ru/">Редирект</a>
+				<a class="nav-link" href="https://www.youtube.com">Еще&nbsp;редирект</a>
 			</div>
 		</div>
 	</nav>
@@ -31,9 +31,10 @@
 				<h1>Добро пожаловать!</h1>
 				<h5>Вы находитесь на сайте нашей команды по разработке вебсерва.</h5>
 				<h6>Вы можете вступить в наши ряды, для этого нужно всего лишь ...</h6>
-				<form action="formpage.html" method="post" enctype="multipart/form-data">
+				<form method="post" enctype="multipart/form-data">
 					<input type="file" id="browse" name="fileupload" style="display: none" onChange="HandleChange();" />
 					<p id="filename"></p>
+<!--					UPLOAD FILES HERE -->
 					<input type="button" value="Прикрепить резюме" id="fakeBrowse" class="btn btn-outline-primary" onclick="HandleBrowseClick();" />
 					<input type="submit" value="Отправить" class="btn btn-primary">
 				</form>

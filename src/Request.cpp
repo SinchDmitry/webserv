@@ -83,6 +83,7 @@ void Request::parseRequest(int clientSocket) {
          it != _body.end(); ++it) {
         std::cout << BLUE << it->first << ": " << END << it->second << std::endl;
     }
+    printValue("Message", _message);
     std::cout << VIOLET << "======= ============ =======" << END << std::endl;
 }
 

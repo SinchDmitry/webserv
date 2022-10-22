@@ -46,6 +46,8 @@ private:
     int         isValidPath(std::string path);
     void        removeSlashes(std::string &path);
 
+    bool        GETResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
+
     struct both_slashes {
         bool operator()(char a, char b) const {
             return a == '/' && b == '/';
