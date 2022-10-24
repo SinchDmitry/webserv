@@ -47,6 +47,7 @@ private:
     void        removeSlashes(std::string &path);
 
     bool        GETResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
+    bool        POSTResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
 
     struct both_slashes {
         bool operator()(char a, char b) const {

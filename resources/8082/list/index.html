@@ -32,10 +32,13 @@
 				<h5>Вы находитесь на сайте нашей команды по разработке вебсерва.</h5>
 				<h6>Вы можете вступить в наши ряды, для этого нужно всего лишь ...</h6>
 				<form method="post" enctype="multipart/form-data">
-					<input type="file" id="browse" name="fileupload" style="display: none" onChange="HandleChange();" />
-					<p id="filename"></p>
 <!--					UPLOAD FILES HERE -->
-					<input type="button" value="Прикрепить резюме" id="fakeBrowse" class="btn btn-outline-primary" onclick="HandleBrowseClick();" />
+					<input type="file" id="browse1" name="fileupload1" style="display: none" onChange="HandleChange('browse1', 'filename1');" />
+					<p id="filename1"></p>
+					<input type="button" value="Прикрепить резюме" id="fakeBrowse1" class="btn btn-outline-primary" onclick="HandleBrowseClick('browse1');" />
+					<input type="file" id="browse2" name="fileupload2" style="display: none" onChange="HandleChange('browse2', 'filename2');" />
+					<p id="filename2"></p>
+					<input type="button" value="Прикрепить что-то еще" id="fakeBrowse2" class="btn btn-outline-primary" onclick="HandleBrowseClick('browse2');" />
 					<input type="submit" value="Отправить" class="btn btn-primary">
 				</form>
 			</div>
@@ -85,13 +88,13 @@
 	</div>
 
 	<script>
-		function HandleBrowseClick() {
-			var fileinput = document.getElementById("browse");
+		function HandleBrowseClick(id) {
+			var fileinput = document.getElementById(id);
 			fileinput.click();
 		}
-		function HandleChange() {
-			var fileinput = document.getElementById("browse");
-			var textinput = document.getElementById("filename");
+		function HandleChange(id, filename) {
+			var fileinput = document.getElementById(id);
+			var textinput = document.getElementById(filename);
 			textinput.innerHTML = fileinput.value;
 		}
 	</script>

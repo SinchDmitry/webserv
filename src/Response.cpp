@@ -240,14 +240,38 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     _autoindex = client.getServer()->getAutoindex();
 
     if (!request.getMethod().compare("GET")) {
-        printValue("Method", "GET");
         return GETResponse(client, clientSocket, request, readCounter);
     } else if (!request.getMethod().compare("POST")) {
-        printValue("Method", "POST");
-        return false;
+        return POSTResponse(client, clientSocket, request, readCounter);
     } else {
         return false;
     }
+}
+
+bool Response::POSTResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
+    std::string contentType = request.getBody().count("Content-Type") ? request.getBody().find("Content-Type")->second : "";
+    std::string boundary = "";
+
+    std::list<std::string> lines = split(request.getMessage(), "\n");
+
+    if (!contentType.empty()) {
+        boundary = contentType.substr(contentType.find("boundary=") + 9);
+    }
+
+    for (std::list<std::string>::const_iterator it = lines.begin(); it != lines.end(); it++) {
+        int found = (*it).find("\r") == std::string::npos ? (*it).length() : (*it).find("\r");
+        if (!(*it).compare("--" + boundary)) {
+            printValue("boundary", boundary);
+            (*it)++;
+            request.bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+        } else if (!(*it).substr(0, found).compare("--" + boundary.substr(0, boundary.length() - 1) + "--")) {
+            printValue("boundary end", "");
+            break;
+        } else {
+            printValue("line", *it);
+        }
+    }
+    return false;
 }
 
 bool Response::GETResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {std::stringstream response;
@@ -264,8 +288,7 @@ bool Response::GETResponse(ClientSocket client, int clientSocket, Request reques
             std::cout << request.getBody().find("Transfer-Encoding")->second << std::endl;
         }
         if (file.fail()) {
-            std::cout << fileName << std::endl;
-            perror("Error : can't open input file");
+            printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " can't open input file: " + fileName);
             _status = std::make_pair(404, _statusCodes.find(404)->second);
         } else {
             _status = std::make_pair(200, _statusCodes.find(200)->second);
@@ -279,7 +302,8 @@ bool Response::GETResponse(ClientSocket client, int clientSocket, Request reques
         response << "\r\n";
         std::cout << RED << "======= HTTP RESPONSE =======\n" << END << response.str() << RED << "======= ============= =======\n" << END << std::endl;
         if (send(clientSocket, response.str().c_str(), response.str().length(), MSG_NOSIGNAL) == SOCKET_ERROR) {
-            perror("Error : send message failure");
+            printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " send message failure");
+            perror("");
             exit(SOCKET_ERROR); // correct it
         }
         headerFlag = true;
@@ -290,7 +314,7 @@ bool Response::GETResponse(ClientSocket client, int clientSocket, Request reques
     std::string buff(READ_BUFFER_SIZE, '0');
     file.read(&buff[0], READ_BUFFER_SIZE);
     if (send(clientSocket, (char *)buff.c_str(), READ_BUFFER_SIZE, MSG_NOSIGNAL) == SOCKET_ERROR) {
-        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " failed send file: " + fileName);
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " failed to send file: " + fileName);
         file.close();
         file.clear();
         return false;
