@@ -220,20 +220,26 @@ void Response::fillHeaders(ClientSocket client, std::string fileName, int conten
         bodyMapPushBack("Date", resDate);
     }
 
-    struct stat attrib;
-    stat(fileName.c_str(), &attrib);
-    if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&(attrib.st_mtime)))) {
-        bodyMapPushBack("Last-Modified", resDate);
+    if (!fileName.empty()) {
+        struct stat attrib;
+        stat(fileName.c_str(), &attrib);
+        if (strftime(resDate, sizeof(resDate), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&(attrib.st_mtime)))) {
+            bodyMapPushBack("Last-Modified", resDate);
+        }
+        if (_contentTypes.count(fileName.substr(fileName.rfind(".") + 1))) {
+            bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
+        } else {
+            bodyMapPushBack("Content-Type", "undefined");
+        }
+    } else {
+        bodyMapPushBack("Content-Type", " text/html; charset=utf-8");
     }
 
-    bodyMapPushBack("Content-Length", std::to_string(contentLength));
+    if (contentLength > 0) {
+        bodyMapPushBack("Content-Length", std::to_string(contentLength));
+    }
     bodyMapPushBack("Version", _httpVersion);
     bodyMapPushBack("Connection", "Closed");
-    if (_contentTypes.count(fileName.substr(fileName.rfind(".") + 1))) {
-        bodyMapPushBack("Content-Type", _contentTypes.find(fileName.substr(fileName.rfind(".") + 1))->second);
-    } else {
-        bodyMapPushBack("Content-Type", "undefined");
-    }
 }
 
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
@@ -243,9 +249,97 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         return GETResponse(client, clientSocket, request, readCounter);
     } else if (!request.getMethod().compare("POST")) {
         return POSTResponse(client, clientSocket, request, readCounter);
+    } else if (!request.getMethod().compare("DELETE")){
+        return DELETEResponse(client, clientSocket, request);
     } else {
-        return false;
+        return BadMethodResponse(client, clientSocket, request, readCounter);
     }
+}
+
+std::string Response::deleteFileName(ClientSocket client, Request request, int clientSocket) {
+    std::string root = client.getServer()->getConfigList().count("root") ? client.getServer()->getConfigList().find("root")->second : "";
+    std::string requestURI = request.getBody().find("Request-URI")->second;
+
+    removeSlashes(root);
+    removeSlashes(requestURI);
+
+    std::string fileName = root + "/" + requestURI;
+
+    if (isValidPath(fileName) == 0) {
+        printMsg(client.getServer()->getNb(), clientSocket, "on descriptor ", " file removed: " + fileName);
+        remove(fileName.c_str());
+        _status = std::make_pair(200, _statusCodes.find(200)->second);
+        return "<!DOCTYPE html>\n"
+               "<html>\n"
+               "<head>\n"
+               "    <meta charset=\"utf-8\">\n"
+               "    <title>200 File deleted</title>\n"
+               "    <link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap\" rel=\"stylesheet\">\n"
+               "    <link href=\"https://fonts.googleapis.com/css2?family=Silkscreen&display=swap\" rel=\"stylesheet\">\n"
+               "    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT\" crossorigin=\"anonymous\">\n"
+               "</head>\n"
+               "<body style=\"font-family: 'Montserrat';\">\n"
+               "    <div class=\"container mt-5 pt-5\">\n"
+               "        <div class=\"row justify-content-center\">\n"
+               "            <div class=\"col-4 text-center\">\n"
+               "                <h1 style=\"font-family: 'Silkscreen', cursive;\">200</h1>\n"
+               "                <h1>File deleted</h1>\n"
+               "            </div>\n"
+               "        </div>\n"
+               "    </div>\n"
+               "</body>\n"
+               "</html>";
+    } else {
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " no content found: " + fileName);
+        _status = std::make_pair(404, _statusCodes.find(404)->second);
+        return "<!DOCTYPE html>\n"
+               "<html>\n"
+               "<head>\n"
+               "    <meta charset=\"utf-8\">\n"
+               "    <title>404 Not found</title>\n"
+               "    <link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap\" rel=\"stylesheet\">\n"
+               "    <link href=\"https://fonts.googleapis.com/css2?family=Silkscreen&display=swap\" rel=\"stylesheet\">\n"
+               "    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT\" crossorigin=\"anonymous\">\n"
+               "</head>\n"
+               "<body style=\"font-family: 'Montserrat';\">\n"
+               "    <div class=\"container mt-5 pt-5\">\n"
+               "        <div class=\"row justify-content-center\">\n"
+               "            <div class=\"col-4 text-center\">\n"
+               "                <h1 style=\"font-family: 'Silkscreen', cursive;\">404</h1>\n"
+               "                <h1>Not found</h1>\n"
+               "            </div>\n"
+               "        </div>\n"
+               "    </div>\n"
+               "</body>\n"
+               "</html>";
+    }
+}
+
+bool Response::DELETEResponse(ClientSocket client, int clientSocket, Request request) {
+    printValue("Method", "DELETE");
+    std::stringstream response;
+
+    fillHeaders(client, "", -1);
+    std::string htmlText = deleteFileName(client, request, clientSocket);
+    bodyMapPushBack("Content-Length", std::to_string(htmlText.length()));
+    response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
+    for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
+        response << it->first << ": " << it->second << "\r\n";
+    }
+
+    response << "\r\n";
+    response << htmlText << "\r\n";
+    std::cout << RED << "======= HTTP RESPONSE =======\n" << END << response.str() << RED << "======= ============= =======\n" << END << std::endl;
+    if (send(clientSocket, response.str().c_str(), response.str().length(), MSG_NOSIGNAL) == SOCKET_ERROR) {
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " send message failure");
+        perror("");
+        exit(SOCKET_ERROR); // correct it
+    }
+    return true;
+}
+
+bool Response::BadMethodResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
+    return true;
 }
 
 bool Response::POSTResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
@@ -262,7 +356,7 @@ bool Response::POSTResponse(ClientSocket client, int clientSocket, Request reque
         int found = (*it).find("\r") == std::string::npos ? (*it).length() : (*it).find("\r");
         if (!(*it).compare("--" + boundary)) {
             printValue("boundary", boundary);
-            (*it)++;
+            it++;
             request.bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
         } else if (!(*it).substr(0, found).compare("--" + boundary.substr(0, boundary.length() - 1) + "--")) {
             printValue("boundary end", "");
@@ -271,10 +365,11 @@ bool Response::POSTResponse(ClientSocket client, int clientSocket, Request reque
             printValue("line", *it);
         }
     }
-    return false;
+    return true;
 }
 
-bool Response::GETResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {std::stringstream response;
+bool Response::GETResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
+    std::stringstream response;
     static std::ifstream file;
     std::string fileName;
     static bool headerFlag;

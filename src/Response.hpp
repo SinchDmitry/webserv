@@ -38,6 +38,7 @@ private:
 
     std::string UriDecode(const std::string & sSrc);
     std::string getFileName(ClientSocket client, Request request);
+    std::string deleteFileName(ClientSocket client, Request request, int clientSocket);
     void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);
     void        bodyMapPushBack(std::string key, std::string value);
     bool        lsHtml(std::string uri);
@@ -48,6 +49,8 @@ private:
 
     bool        GETResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
     bool        POSTResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
+    bool        DELETEResponse(ClientSocket client, int clientSocket, Request request);
+    bool        BadMethodResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
 
     struct both_slashes {
         bool operator()(char a, char b) const {
