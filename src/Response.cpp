@@ -339,6 +339,46 @@ bool Response::DELETEResponse(ClientSocket client, int clientSocket, Request req
 }
 
 bool Response::BadMethodResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
+    printValue("Method", "Bad request");
+
+    std::stringstream response;
+
+    fillHeaders(client, "", -1);
+    std::string htmlText = "<!DOCTYPE html>\n"
+                           "<html>\n"
+                           "<head>\n"
+                           "    <meta charset=\"utf-8\">\n"
+                           "    <title>405 Method Not Allowed</title>\n"
+                           "    <link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap\" rel=\"stylesheet\">\n"
+                           "    <link href=\"https://fonts.googleapis.com/css2?family=Silkscreen&display=swap\" rel=\"stylesheet\">\n"
+                           "    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT\" crossorigin=\"anonymous\">\n"
+                           "</head>\n"
+                           "<body style=\"font-family: 'Montserrat';\">\n"
+                           "    <div class=\"container mt-5 pt-5\">\n"
+                           "        <div class=\"row justify-content-center\">\n"
+                           "            <div class=\"col-4 text-center\">\n"
+                           "                <h1 style=\"font-family: 'Silkscreen', cursive;\">405</h1>\n"
+                           "                <h1>Method not allowed</h1>\n"
+                           "            </div>\n"
+                           "        </div>\n"
+                           "    </div>\n"
+                           "</body>\n"
+                           "</html>";
+    bodyMapPushBack("Content-Length", std::to_string(htmlText.length()));
+    _status = std::make_pair(405, _statusCodes.find(405)->second);
+    response << _httpVersion << " " << _status.first << " " << _status.second << "\r\n";
+    for (std::map<std::string, std::string>::const_iterator it = _body.begin(); it != _body.end(); it++) {
+        response << it->first << ": " << it->second << "\r\n";
+    }
+
+    response << "\r\n";
+    response << htmlText << "\r\n";
+    std::cout << RED << "======= HTTP RESPONSE =======\n" << END << response.str() << RED << "======= ============= =======\n" << END << std::endl;
+    if (send(clientSocket, response.str().c_str(), response.str().length(), MSG_NOSIGNAL) == SOCKET_ERROR) {
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " send message failure");
+        perror("");
+        exit(SOCKET_ERROR); // correct it
+    }
     return true;
 }
 
