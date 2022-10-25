@@ -2,6 +2,58 @@
 #include "Server.hpp"
 #include "main.hpp"
 
+std::string urlDecode(std::string const & address)
+{
+    std::string outp;
+    unsigned int decodedI;
+    size_t maxLen = address.find('?');
+
+    for (size_t i = 0; i < address.length() && (i < maxLen || maxLen == std::string::npos); i++)
+    {
+        if (address[i] != '%')
+        {
+            if (address[i] == '+')
+                outp += ' ';
+            else
+                outp += address[i];
+        }
+        else
+        {
+            sscanf(address.substr(i + 1, 2).c_str(), "%x", & decodedI);
+            outp += static_cast<char>(decodedI);
+            i += 2;
+        }
+    }
+    return outp;
+}
+
+std::string urlEncode(std::string str)
+{
+    std::string new_str = "";
+    char c;
+    int ic;
+    const char* chars = str.c_str();
+    char bufHex[10];
+    int len = strlen(chars);
+
+    for(int i=0;i<len;i++){
+        c = chars[i];
+        ic = c;
+        // uncomment this if you want to encode spaces with +
+        /*if (c==' ') new_str += '+';
+        else */if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') new_str += c;
+        else {
+            sprintf(bufHex,"%X",c);
+            if(ic < 16)
+                new_str += "%0";
+            else
+                new_str += "%";
+            new_str += bufHex;
+        }
+    }
+    return new_str;
+}
+
 std::string replace(std::string src, std::string s1, std::string s2) {
     std::string dest = "";
     size_t index;

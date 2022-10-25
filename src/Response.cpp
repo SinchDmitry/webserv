@@ -83,7 +83,7 @@ std::string Response::getFileName(ClientSocket client, Request request) {
 
     std::string host = request.getBody().find("Host")->second;
     std::string root = client.getServer()->getConfigList().count("root") ? client.getServer()->getConfigList().find("root")->second : "";
-    std::string requestURI = request.getBody().find("Request-URI")->second;
+    std::string requestURI = urlDecode(request.getBody().find("Request-URI")->second);
 
     removeSlashes(root);
     removeSlashes(requestURI);
