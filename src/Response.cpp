@@ -244,12 +244,29 @@ void Response::fillHeaders(ClientSocket client, std::string fileName, int conten
 
 bool Response::generateResponse(ClientSocket client, int clientSocket, Request request, int& readCounter) {
     _autoindex = client.getServer()->getAutoindex();
+    std::list<LocationInfo*> serverLocation = client.getServer()->getLocations();
 
-    if (!request.getMethod().compare("GET")) {
+    std::string requestURI = urlDecode(request.getBody().find("Request-URI")->second);
+    removeSlashes(requestURI);
+
+    std::list<std::string> allowMethods;
+
+    for (std::list<LocationInfo*>::const_iterator it = serverLocation.begin(); it != serverLocation.end(); it++) {
+        if (!(*it)->getLocation().compare("/" + requestURI.substr(0, requestURI.find("/")))) {
+            if ((*it)->getConfigList().count("allow_methods")) {
+                allowMethods = split((*it)->getConfigList().find("allow_methods")->second, "/");
+            }
+        }
+    }
+
+    if (!request.getMethod().compare("GET")
+        && (allowMethods.empty() || std::find(allowMethods.begin(), allowMethods.end(), "GET") != allowMethods.end())) {
         return GETResponse(client, clientSocket, request, readCounter);
-    } else if (!request.getMethod().compare("POST")) {
+    } else if (!request.getMethod().compare("POST")
+               && (allowMethods.empty() || std::find(allowMethods.begin(), allowMethods.end(), "POST") != allowMethods.end())) {
         return POSTResponse(client, clientSocket, request, readCounter);
-    } else if (!request.getMethod().compare("DELETE")){
+    } else if (!request.getMethod().compare("DELETE")
+               && (allowMethods.empty() || std::find(allowMethods.begin(), allowMethods.end(), "DELETE") != allowMethods.end())) {
         return DELETEResponse(client, clientSocket, request);
     } else {
         return BadMethodResponse(client, clientSocket, request, readCounter);
