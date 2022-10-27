@@ -249,13 +249,19 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     std::string host = request.getBody().find("Host")->second.substr(0, request.getBody().find("Host")->second.length() - 1);
     std::string referer = request.getBody().count("Referer") ? request.getBody().find("Referer")->second : "";
     std::string requestURI = urlDecode(request.getBody().find("Request-URI")->second);
-    std::string link = referer.substr(0, referer.length() - 1) + requestURI;
+    std::string link = referer.substr(0, referer.length() - 1);
     removeSlashes(requestURI);
 
-//    printValue("link", link);
-    std::string location = link.substr(link.find(host) + host.length() + 1);
-    location = location.substr(0, location.find("/"));
-//    printValue("location", location);
+    printValue("link", link);
+    std::string location = "";
+    if (link.find(host) != std::string::npos) {
+        location = link.substr(link.find(host) + host.length() + 1);
+    }
+    if (location.find("/") == std::string::npos) {
+        location = "";
+    } else {
+        location = location.substr(0, location.find("/"));
+    }
 
     std::list<std::string> allowMethods;
 
@@ -267,18 +273,15 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         }
     }
 
-//    for (std::list<std::string>::const_iterator it = allowMethods.begin(); it != allowMethods.end(); it++) {
-//        printValue("allowMethods", *it);
-//    }
+    for (std::list<std::string>::const_iterator it = allowMethods.begin(); it != allowMethods.end(); it++) {
+        printValue("allowMethods", *it);
+    }
 
-    if (!request.getMethod().compare("GET")) {
-//        && (allowMethods.empty() || std::find(allowMethods.begin(), allowMethods.end(), "GET") != allowMethods.end())) {
+    if (!request.getMethod().compare("GET") && std::find(allowMethods.begin(), allowMethods.end(), "GET") != allowMethods.end()) {
         return GETResponse(client, clientSocket, request, readCounter);
-    } else if (!request.getMethod().compare("POST")) {
-//               && (allowMethods.empty() || std::find(allowMethods.begin(), allowMethods.end(), "POST") != allowMethods.end())) {
+    } else if (!request.getMethod().compare("POST") && std::find(allowMethods.begin(), allowMethods.end(), "POST") != allowMethods.end()) {
         return POSTResponse(client, clientSocket, request, readCounter);
-    } else if (!request.getMethod().compare("DELETE")) {
-//               && (allowMethods.empty() || std::find(allowMethods.begin(), allowMethods.end(), "DELETE") != allowMethods.end())) {
+    } else if (!request.getMethod().compare("DELETE") && std::find(allowMethods.begin(), allowMethods.end(), "DELETE") != allowMethods.end()) {
         return DELETEResponse(client, clientSocket, request);
     } else {
         return BadMethodResponse(client, clientSocket, request, readCounter);
