@@ -422,6 +422,7 @@ bool Response::POSTResponse(ClientSocket client, int clientSocket, Request reque
             printValue("line", *it);
         }
     }
+    printValue("len", std::to_string(request.getMessage().length()));
     return true;
 }
 

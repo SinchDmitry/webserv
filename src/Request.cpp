@@ -41,8 +41,30 @@ bool Request::readToBuffer(int clientSocket, bool isHeader) {
     return true;
 }
 
-void Request::parseRequest(int clientSocket) {
+void Request::setMaxBodySize(const std::string sizeFromConfig) {
+    int exp = 1;
+    int found;
+    std::string tmp;
+
+    if (sizeFromConfig.find("K") != std::string::npos || sizeFromConfig.find("k") != std::string::npos) {
+        found = sizeFromConfig.find("K") != std::string::npos ? sizeFromConfig.find("K") : sizeFromConfig.find("k");
+        exp = 1000;
+    } else if (sizeFromConfig.find("M") != std::string::npos || sizeFromConfig.find("m") != std::string::npos) {
+        found = sizeFromConfig.find("M") != std::string::npos ? sizeFromConfig.find("M") : sizeFromConfig.find("m");
+        exp = 1000000;
+    } else {
+        found = sizeFromConfig.length();
+    }
+    tmp = sizeFromConfig.substr(0, found);
+
+    _maxBodySize = (std::stod(tmp) != 0 && std::stod(tmp) < std::numeric_limits<size_t>::max() / exp) ? std::stod(tmp) * exp : MAX_BODY_SIZE;
+}
+
+void Request::parseRequest(int clientSocket, ListenSocket* server) {
     // посимвольное считывание шапки запроса
+    server->getConfigList().count("client_max_body_size") ? setMaxBodySize(server->getConfigList().find("client_max_body_size")->second) : setMaxBodySize(MAX_BODY_SIZE);
+    printValue("maxBodySize", std::to_string(_maxBodySize));
+
     while (readToBuffer(clientSocket, true)) {}
     _message[_message.length()] = '\0';
 
@@ -71,13 +93,6 @@ void Request::parseRequest(int clientSocket) {
         }
         _message[_message.length()] = '\0';
     }
-//    std::cout << "\tMethod -> " << _method << std::endl;
-//    std::cout << "\tHost -> " << _body.find("Host")->second << std::endl;
-//    std::cout << "\tRequest-URI -> " << _body.find("Request-URI")->second << std::endl;
-//    if (_body.count("Referer")) {
-//        std::cout << "\tReferer -> " << _body.find("Referer")->second << std::endl;
-//    }
-//    std::cout << "\tMessage -> " << _message << std::endl;
     std::cout << VIOLET << "======= HTTP REQUEST =======" << END << std::endl;
     for (std::map<std::string, std::string>::iterator it = _body.begin();
          it != _body.end(); ++it) {
@@ -86,19 +101,3 @@ void Request::parseRequest(int clientSocket) {
     printValue("Message", _message);
     std::cout << VIOLET << "======= ============ =======" << END << std::endl;
 }
-
-//std::list<std::string> Request::split(const std::string& str, std::string myDelim)
-//{
-//    std::list<std::string> dest;
-//    char* delim = (char *)myDelim.c_str();
-//    char* pTempStr = strdup( str.c_str() );
-//    char* pWord = strtok(pTempStr, delim);
-//    while(pWord != NULL)
-//    {
-//        dest.push_back(pWord);
-//        pWord = strtok(NULL, delim);
-//    }
-//
-//    free(pTempStr);
-//    return dest;
-//}

@@ -24,6 +24,7 @@
 # define END "\033[0m"
 
 # define HOSTNAME_LEN 30
+# define MAX_BODY_SIZE 10000
 
 
 # include <list>

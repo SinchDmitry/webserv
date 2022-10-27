@@ -14,6 +14,7 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include "main.hpp"
+# include "ListenSocket.hpp"
 
 # define END_ERROR          1
 # define EMPTY_BUFFER		0
@@ -21,13 +22,16 @@
 # define MAX_SHORT          32767
 # define READ_BUFFER_SIZE   3000
 
+class ListenSocket;
+
 class Request {
 private:
     std::map<std::string, std::string>  _body;
     std::string                         _method;
     std::string                         _message;
+    size_t                              _maxBodySize;
+    std::list<std::string>              _allowMethods;
 
-//    std::list<std::string>  split(const std::string& str, std::string myDelim);
     bool                    readToBuffer( int clientSocket, bool isHeader );
 
 public:
@@ -42,9 +46,12 @@ public:
     const std::string&                          getMessage() const { return _message; };
 
     void setMethod( const std::string method ) { _method = method; };
+//    void setAllowMethods( )
+    void setMaxBodySize( const std::string sizeFromConfig );
+    void setMaxBodySize ( const size_t size ) { _maxBodySize = size; };
 
     void bodyMapPushBack(std::string key, std::string value);
-    void parseRequest(int clientSocket);
+    void parseRequest(int clientSocket, ListenSocket* server);
 };
 
 #endif //REQUEST_HPP

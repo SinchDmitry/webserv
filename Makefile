@@ -65,6 +65,7 @@ $(NAME):	$(OBJ_DIR) $(OBJS_BUILD) Makefile $(HEADS)
 			@printf "%-50.40s\r\n"
 			@printf "%-38.38s\r\t$(YELLOW)$(TICK)$(GRN) $(NAME) was compiled!$(END)\n\n"
 			@echo "\t$(BLUE)Usage: ./$(NAME) [config_file_name] $(END)\n"
+			@./$(NAME)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp  $(HEADS)  Makefile
 			@printf "$(VIOLET)Generating $(NAME)'s objects... %-38.38s\r" $@
@@ -72,6 +73,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp  $(HEADS)  Makefile
 
 $(OBJ_DIR):
 			@mkdir -p $(OBJ_SUBDIR)
+
+test:		all
+			@./$(NAME)
 
 clean:
 			@$(RM) $(OBJ_DIR)

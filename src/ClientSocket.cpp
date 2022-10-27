@@ -24,7 +24,7 @@ ClientSocket& ClientSocket::operator = (const ClientSocket& op) {
 
 void ClientSocket::setRequest(int clientSocket) {
     Request* request = new Request();
-    request->parseRequest(clientSocket);
+    request->parseRequest(clientSocket, _server);
     _inputRequest = *request;
 }
 
