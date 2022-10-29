@@ -252,7 +252,6 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
     std::string link = referer.substr(0, referer.length() - 1);
     removeSlashes(requestURI);
 
-    printValue("link", link);
     std::string location = "";
     if (link.find(host) != std::string::npos) {
         location = link.substr(link.find(host) + host.length() + 1);
@@ -273,14 +272,10 @@ bool Response::generateResponse(ClientSocket client, int clientSocket, Request r
         }
     }
 
-    for (std::list<std::string>::const_iterator it = allowMethods.begin(); it != allowMethods.end(); it++) {
-        printValue("allowMethods", *it);
-    }
-
     if (!request.getMethod().compare("GET") && std::find(allowMethods.begin(), allowMethods.end(), "GET") != allowMethods.end()) {
         return GETResponse(client, clientSocket, request, readCounter);
     } else if (!request.getMethod().compare("POST") && std::find(allowMethods.begin(), allowMethods.end(), "POST") != allowMethods.end()) {
-        return POSTResponse(client, clientSocket, request, readCounter);
+        return POSTResponse(client, clientSocket, request);
     } else if (!request.getMethod().compare("DELETE") && std::find(allowMethods.begin(), allowMethods.end(), "DELETE") != allowMethods.end()) {
         return DELETEResponse(client, clientSocket, request);
     } else {
@@ -414,31 +409,47 @@ bool Response::BadMethodResponse(ClientSocket client, int clientSocket, Request 
     return true;
 }
 
-bool Response::POSTResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
+bool Response::POSTResponse(ClientSocket client, int clientSocket, Request request) {
     std::string contentType = request.getBody().count("Content-Type") ? request.getBody().find("Content-Type")->second : "";
-    std::string boundary = "";
 
+    printValue("contentType", contentType);
+    if (contentType.find("multipart/form-data") != std::string::npos) {
+        printValue("Find", "multipart/form-data");
+        POSTformdata(request, contentType, client, clientSocket);
+    }
+    return true;
+}
+
+void Response::POSTformdata(Request request, std::string contentType, ClientSocket client, int clientSocket) {
+    std::string boundary = "";
     std::list<std::string> lines = split(request.getMessage(), "\n");
 
     if (!contentType.empty()) {
         boundary = contentType.substr(contentType.find("boundary=") + 9);
     }
 
-    for (std::list<std::string>::const_iterator it = lines.begin(); it != lines.end(); it++) {
-        int found = (*it).find("\r") == std::string::npos ? (*it).length() : (*it).find("\r");
-        if (!(*it).compare("--" + boundary)) {
-            printValue("boundary", boundary);
-            it++;
-            request.bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
-        } else if (!(*it).substr(0, found).compare("--" + boundary.substr(0, boundary.length() - 1) + "--")) {
-            printValue("boundary end", "");
-            break;
-        } else {
-            printValue("line", *it);
-        }
+    if (boundary.size() < 1) {
+        _status = std::make_pair(400, _statusCodes.find(400)->second);
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " can't read boundary");
+        return;
     }
-    printValue("len", std::to_string(request.getMessage().length()));
-    return true;
+
+    _status = std::make_pair(100, _statusCodes.find(100)->second);
+    std::list<std::string> bodyList = splitStr(request.getMessage(), "--" + boundary.substr(0, boundary.length() - 1), "--");
+//    for (std::list<std::string>::const_iterator it = lines.begin(); it != lines.end(); it++) {
+//        int found = (*it).find("\r") == std::string::npos ? (*it).length() : (*it).find("\r");
+//        if (!(*it).compare("--" + boundary)) {
+//            printValue("boundary", boundary);
+//            it++;
+//            request.bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
+//        } else if (!(*it).substr(0, found).compare("--" + boundary.substr(0, boundary.length() - 1) + "--")) {
+//            printValue("boundary end", "");
+//            break;
+//        } else {
+//            printValue("line", *it);
+//        }
+//    }
+//    printValue("len", std::to_string(request.getMessage().length()));
 }
 
 bool Response::GETResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {

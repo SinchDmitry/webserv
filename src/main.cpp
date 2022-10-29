@@ -73,9 +73,9 @@ void ctrl_c_handler(int sig) {
     exit(0);
 }
 
-std::list<std::string> split(const std::string& str, std::string myDelim) {
+std::list<std::string> split(const std::string& str, std::string myDelims) {
     std::list<std::string> dest;
-    char* delim = (char *)myDelim.c_str();
+    char* delim = (char *)myDelims.c_str();
     char* pTempStr = strdup(str.c_str());
     char* pWord = strtok(pTempStr, delim);
     while(pWord != NULL) {
@@ -83,6 +83,31 @@ std::list<std::string> split(const std::string& str, std::string myDelim) {
         pWord = strtok(NULL, delim);
     }
     free(pTempStr);
+    return dest;
+}
+
+std::list<std::string> splitStr(const std::string& str, std::string delim, std::string postfix) {
+    std::list<std::string> dest;
+    std::string subStr;
+    size_t pos = 0;
+    size_t startIndex = 0;
+
+    if (delim != "") {
+        for (pos = str.find(delim, pos++); pos != std::string::npos; pos = str.find(delim, pos + 1)) { //???? {
+            subStr.clear();
+            subStr.append(str, startIndex, pos - startIndex);
+            if (!subStr.empty()) {
+                dest.push_back(subStr);
+            }
+            startIndex = pos + delim.size();
+            if (pos + delim.size() != std::string::npos)
+                pos += (delim.size() - 1);
+        }
+    }
+    subStr.clear();
+    subStr.append(str, startIndex, std::string::npos);
+    dest.push_back(subStr);
+
     return dest;
 }
 

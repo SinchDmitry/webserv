@@ -42,13 +42,12 @@ private:
     void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);
     void        bodyMapPushBack(std::string key, std::string value);
     bool        lsHtml(std::string uri);
-    bool        AIOnSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
-    bool        AIOffSend(ClientSocket client, int clientSocket, Request request, int& readCounter);
     int         isValidPath(std::string path);
     void        removeSlashes(std::string &path);
 
     bool        GETResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
-    bool        POSTResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
+    bool        POSTResponse(ClientSocket client, int clientSocket, Request request);
+    void        POSTformdata(Request request, std::string contentType, ClientSocket client, int clientSocket);
     bool        DELETEResponse(ClientSocket client, int clientSocket, Request request);
     bool        BadMethodResponse(ClientSocket client, int clientSocket, Request request, int& readCounter);
 

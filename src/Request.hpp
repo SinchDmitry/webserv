@@ -30,7 +30,6 @@ private:
     std::string                         _method;
     std::string                         _message;
     size_t                              _maxBodySize;
-    std::list<std::string>              _allowMethods;
 
     bool                    readToBuffer( int clientSocket, bool isHeader );
 
@@ -46,7 +45,6 @@ public:
     const std::string&                          getMessage() const { return _message; };
 
     void setMethod( const std::string method ) { _method = method; };
-//    void setAllowMethods( )
     void setMaxBodySize( const std::string sizeFromConfig );
     void setMaxBodySize ( const size_t size ) { _maxBodySize = size; };
 
