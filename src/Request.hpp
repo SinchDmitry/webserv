@@ -43,6 +43,7 @@ public:
     const std::map<std::string, std::string>&   getBody() const  { return _body; };
     const std::string&                          getMethod() const { return _method; };
     const std::string&                          getMessage() const { return _message; };
+    const size_t&                               getMaxBodySize() const { return _maxBodySize; };
 
     void setMethod( const std::string method ) { _method = method; };
     void setMaxBodySize( const std::string sizeFromConfig );
