@@ -455,8 +455,12 @@ void Response::POSTformdata(Request request, std::string contentType, ClientSock
         printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " can't read boundary");
         return;
     }
-    printValue("max_body_size", std::to_string(request.getMaxBodySize()));
-    printValue("len_message  ", std::to_string(request.getMessage().length()));
+
+    if (request.getMessage().length() > request.getMaxBodySize()) {
+        _status = std::make_pair(413, _statusCodes.find(413)->second);
+        printMsg(client.getServer()->getNb(), clientSocket, RED, "on descriptor ", " payload too large");
+        return;
+    }
 
     _status = std::make_pair(100, _statusCodes.find(100)->second);
     std::string path = client.getServer()->getConfigList().count("root") ? client.getServer()->getConfigList().find("root")->second + "/downloads/" : "./resources/downloads/";

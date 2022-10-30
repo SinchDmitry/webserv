@@ -15,6 +15,7 @@ Request &Request::operator=(const Request &src) {
         _method = src._method;
         _message = src._message;
         _body = src._body;
+        _maxBodySize = src._maxBodySize;
     }
     return  *this;
 }
