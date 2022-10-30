@@ -414,14 +414,28 @@ bool Response::POSTResponse(ClientSocket client, int clientSocket, Request reque
 
     printValue("contentType", contentType);
     if (contentType.find("multipart/form-data") != std::string::npos) {
-        printValue("Find", "multipart/form-data");
         POSTformdata(request, contentType, client, clientSocket);
     }
     return true;
 }
 
+std::string Response::postFileName(std::string body) {
+    std::string fileName = "";
+
+    std::string header = body.substr(0, body.find("\r\n\r\n"));
+    if (!body.compare("--\r\n")) {
+        return "";
+    } else {
+        int found = header.find("filename=");
+        fileName = header.substr(found + 10);
+        fileName = fileName.substr(0, fileName.find("\""));
+        return fileName;
+    }
+}
+
 void Response::POSTformdata(Request request, std::string contentType, ClientSocket client, int clientSocket) {
     std::string boundary = "";
+    std::string fileName = "";
     std::list<std::string> lines = split(request.getMessage(), "\n");
 
     if (!contentType.empty()) {
@@ -435,7 +449,29 @@ void Response::POSTformdata(Request request, std::string contentType, ClientSock
     }
 
     _status = std::make_pair(100, _statusCodes.find(100)->second);
+    std::string path = client.getServer()->getConfigList().count("root") ? client.getServer()->getConfigList().find("root")->second + "/downloads/" : "./resources/downloads/";
+    if (isValidPath(path) != 1) {
+        printMsg(client.getServer()->getNb(), clientSocket, VIOLET, "on descriptor ", " can't find path " + path + " to save file, files will be downloaded to the root directory");
+        path = "./";
+    }
     std::list<std::string> bodyList = splitStr(request.getMessage(), "--" + boundary.substr(0, boundary.length() - 1), "--");
+    for (std::list<std::string>::const_iterator it = bodyList.begin(); it != bodyList.end(); it++) {
+        fileName = postFileName(*it);
+        if (!fileName.empty()) {
+            int nb = 1;
+            std::string tmpFileName = path + fileName;
+            while (isValidPath(tmpFileName) == 0) {
+                tmpFileName = path + fileName + "(" + std::to_string(nb) + ")";
+                nb++;
+            }
+            fileName = tmpFileName;
+            printValue("file + path", fileName);
+//            std::string content = ;
+//            FILE * file;
+//            file = fopen(fileName.c_str(), "a");
+//            fclose(file);
+        }
+    }
 //    for (std::list<std::string>::const_iterator it = lines.begin(); it != lines.end(); it++) {
 //        int found = (*it).find("\r") == std::string::npos ? (*it).length() : (*it).find("\r");
 //        if (!(*it).compare("--" + boundary)) {

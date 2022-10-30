@@ -38,6 +38,7 @@ private:
 
     std::string UriDecode(const std::string & sSrc);
     std::string getFileName(ClientSocket client, Request request);
+    std::string postFileName(std::string body);
     std::string deleteFileName(ClientSocket client, Request request, int clientSocket);
     void        fillHeaders(ClientSocket client, std::string fileName, int contentLength);
     void        bodyMapPushBack(std::string key, std::string value);
