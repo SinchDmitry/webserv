@@ -433,6 +433,14 @@ std::string Response::postFileName(std::string body) {
     }
 }
 
+std::string Response::postContent(std::string body) {
+    std::string content = "";
+
+    content = body.substr(body.find("\r\n\r\n") + 4);
+    content = content.substr(0, content.find("\r\n\r\n"));
+    return content;
+}
+
 void Response::POSTformdata(Request request, std::string contentType, ClientSocket client, int clientSocket) {
     std::string boundary = "";
     std::string fileName = "";
@@ -465,27 +473,13 @@ void Response::POSTformdata(Request request, std::string contentType, ClientSock
                 nb++;
             }
             fileName = tmpFileName;
-            printValue("file + path", fileName);
-//            std::string content = ;
-//            FILE * file;
-//            file = fopen(fileName.c_str(), "a");
-//            fclose(file);
+            std::string content = postContent(*it);
+            FILE * file;
+            file = fopen(fileName.c_str(), "a");
+            fwrite(content.c_str(), sizeof(char), content.length(), file);
+            fclose(file);
         }
     }
-//    for (std::list<std::string>::const_iterator it = lines.begin(); it != lines.end(); it++) {
-//        int found = (*it).find("\r") == std::string::npos ? (*it).length() : (*it).find("\r");
-//        if (!(*it).compare("--" + boundary)) {
-//            printValue("boundary", boundary);
-//            it++;
-//            request.bodyMapPushBack((*it).substr(0, (*it).find(":")), (*it).substr((*it).find(" ") + 1));
-//        } else if (!(*it).substr(0, found).compare("--" + boundary.substr(0, boundary.length() - 1) + "--")) {
-//            printValue("boundary end", "");
-//            break;
-//        } else {
-//            printValue("line", *it);
-//        }
-//    }
-//    printValue("len", std::to_string(request.getMessage().length()));
 }
 
 bool Response::GETResponse(ClientSocket client, int clientSocket, Request request, int &readCounter) {
