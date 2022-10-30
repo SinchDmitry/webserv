@@ -437,7 +437,7 @@ std::string Response::postContent(std::string body) {
     std::string content = "";
 
     content = body.substr(body.find("\r\n\r\n") + 4);
-    content = content.substr(0, content.find("\r\n\r\n"));
+    content = content.substr(0, content.find("\r\n"));
     return content;
 }
 
